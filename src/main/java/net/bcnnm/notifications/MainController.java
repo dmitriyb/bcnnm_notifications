@@ -1,5 +1,8 @@
 package net.bcnnm.notifications;
 
+import net.bcnnm.notifications.slack.SlackChannelWriter;
+import net.bcnnm.notifications.slack.format.SlackFormatter;
+import net.bcnnm.notifications.slack.format.SlackFormatterException;
 import net.bcnnm.notifications.model.AgentReport;
 import net.bcnnm.notifications.model.TaskStatus;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +27,12 @@ import java.util.List;
 @Path("/api")
 public class MainController {
     private final MongoOperations mongoTemplate;
+    private final SlackChannelWriter slack;
 
     @Autowired
-    public MainController(MongoOperations mongoTemplate) {
+    public MainController(MongoOperations mongoTemplate, SlackChannelWriter slack) {
         this.mongoTemplate = mongoTemplate;
+        this.slack = slack;
     }
 
     @POST
@@ -46,6 +51,14 @@ public class MainController {
         update.pushAll("info", report.getInfo().toArray());
 
         mongoTemplate.upsert(query, update, AgentReport.class);
+
+        try {
+            slack.writeMessage(SlackFormatter.format(report, AgentReport.class));
+        } catch (SlackFormatterException e) {
+            // TODO: add proper logging
+            e.printStackTrace();
+            slack.writeMessage(report.toString());
+        }
     }
 
     @GET

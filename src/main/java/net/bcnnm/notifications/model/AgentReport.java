@@ -1,5 +1,8 @@
 package net.bcnnm.notifications.model;
 
+import net.bcnnm.notifications.slack.format.SlackBold;
+import net.bcnnm.notifications.slack.format.SlackIgnore;
+import net.bcnnm.notifications.slack.format.SlackName;
 import org.springframework.data.annotation.Id;
 
 import java.util.Date;
@@ -7,13 +10,29 @@ import java.util.List;
 
 public class AgentReport {
     @Id
+    @SlackIgnore
     private String id;
 
+    @SlackBold
+    @SlackName("Task ID")
     private String taskId;
+
+    @SlackBold
+    @SlackName("Agent IP")
     private String agentIp;
+
+    @SlackBold
+    @SlackName("Timestamp")
     private Date timestamp;
+
+    @SlackBold
+    @SlackName("Status")
     private TaskStatus status;
+
+    @SlackName("Progress")
     private int progress;
+
+    @SlackName("Info message")
     private List<String> info;
 
     public AgentReport(String taskId, String agentIp, Date timestamp, TaskStatus status, int progress, List<String> info) {

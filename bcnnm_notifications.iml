@@ -59,7 +59,6 @@
     <orderEntry type="library" name="Maven: org.glassfish.hk2.external:aopalliance-repackaged:2.5.0-b32" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.hk2.external:javax.inject:2.5.0-b32" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.hk2:hk2-locator:2.5.0-b32" level="project" />
-    <orderEntry type="library" name="Maven: org.javassist:javassist:3.21.0-GA" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jersey.containers:jersey-container-servlet-core:2.25.1" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jersey.containers:jersey-container-servlet:2.25.1" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jersey.ext:jersey-bean-validation:2.25.1" level="project" />
@@ -86,5 +85,27 @@
     <orderEntry type="library" name="Maven: org.springframework.data:spring-data-commons:1.13.1.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.24" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:jcl-over-slf4j:1.7.24" level="project" />
+    <orderEntry type="library" name="Maven: com.github.allbegray:slack-api:v1.3.0.RELEASE" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpmime:4.5.3" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpclient:4.5.3" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpcore:4.4.6" level="project" />
+    <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.10" level="project" />
+    <orderEntry type="library" name="Maven: org.asynchttpclient:async-http-client:2.0.5" level="project" />
+    <orderEntry type="library" name="Maven: io.netty:netty-codec-http:4.0.36.Final" level="project" />
+    <orderEntry type="library" name="Maven: io.netty:netty-codec:4.0.36.Final" level="project" />
+    <orderEntry type="library" name="Maven: io.netty:netty-handler:4.0.36.Final" level="project" />
+    <orderEntry type="library" name="Maven: io.netty:netty-buffer:4.0.36.Final" level="project" />
+    <orderEntry type="library" name="Maven: org.asynchttpclient:netty-resolver-dns:2.0.5" level="project" />
+    <orderEntry type="library" name="Maven: org.asynchttpclient:netty-resolver:2.0.5" level="project" />
+    <orderEntry type="library" name="Maven: io.netty:netty-common:4.0.36.Final" level="project" />
+    <orderEntry type="library" name="Maven: org.asynchttpclient:netty-codec-dns:2.0.5" level="project" />
+    <orderEntry type="library" name="Maven: io.netty:netty-transport:4.0.36.Final" level="project" />
+    <orderEntry type="library" name="Maven: org.reactivestreams:reactive-streams:1.0.0" level="project" />
+    <orderEntry type="library" name="Maven: com.typesafe.netty:netty-reactive-streams:1.0.6" level="project" />
+    <orderEntry type="library" name="Maven: org.javassist:javassist:3.21.0-GA" level="project" />
+    <orderEntry type="library" name="Maven: org.junit.jupiter:junit-jupiter-api:5.0.0-M3" level="project" />
+    <orderEntry type="library" name="Maven: org.opentest4j:opentest4j:1.0.0-M1" level="project" />
+    <orderEntry type="library" name="Maven: org.junit.platform:junit-platform-commons:1.0.0-M3" level="project" />
+    <orderEntry type="library" name="Maven: commons-beanutils:commons-beanutils:1.8.3" level="project" />
   </component>
 </module>
