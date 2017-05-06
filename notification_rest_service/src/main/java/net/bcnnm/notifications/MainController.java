@@ -6,6 +6,7 @@ import net.bcnnm.notifications.slack.format.SlackFormatterException;
 import net.bcnnm.notifications.model.AgentReport;
 import net.bcnnm.notifications.model.TaskStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -62,16 +63,16 @@ public class MainController {
     }
 
     @GET
-    @Path("/list")
+    @Path("/task")
     @Produces(MediaType.APPLICATION_JSON)
     public List<AgentReport> listReports() {
         return mongoTemplate.findAll(AgentReport.class);
     }
 
     @GET
-    @Path("/get/{task}")
+    @Path("/task/{taskId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public AgentReport getReportByTask(@PathParam("task") String taskId) {
+    public AgentReport getReportByTask(@PathParam("taskId") String taskId) {
         Query byTask = new Query().addCriteria(Criteria.where("taskId").is(taskId));
         return mongoTemplate.findOne(byTask, AgentReport.class);
     }
