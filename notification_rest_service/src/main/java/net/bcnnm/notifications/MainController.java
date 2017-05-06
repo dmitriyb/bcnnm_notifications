@@ -30,6 +30,9 @@ public class MainController {
     private final MongoOperations mongoTemplate;
     private final SlackChannelWriter slack;
 
+    @Value("${reporting.service.url}")
+    private String REPORTING_SERVICE_URL;
+
     @Autowired
     public MainController(MongoOperations mongoTemplate, SlackChannelWriter slack) {
         this.mongoTemplate = mongoTemplate;
@@ -75,6 +78,14 @@ public class MainController {
     public AgentReport getReportByTask(@PathParam("taskId") String taskId) {
         Query byTask = new Query().addCriteria(Criteria.where("taskId").is(taskId));
         return mongoTemplate.findOne(byTask, AgentReport.class);
+    }
+
+    @GET
+    @Path("/request/{taskId}")
+    public Response requestReport(@PathParam("taskId") String taskId) {
+        Client client = ClientBuilder.newClient();
+        WebTarget target = client.target(REPORTING_SERVICE_URL).path("request").path(taskId);
+        return target.request().get();
     }
 
     // FOR TEST PURPOSE ONLY
