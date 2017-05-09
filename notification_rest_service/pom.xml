@@ -38,6 +38,12 @@
             <version>v1.3.0.RELEASE</version>
         </dependency>
 
+        <dependency>
+            <groupId>me.ramswaroop.jbot</groupId>
+            <artifactId>jbot</artifactId>
+            <version>3.0.2</version>
+        </dependency>
+
         <!--Misc-->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

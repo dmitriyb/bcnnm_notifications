@@ -7,10 +7,6 @@ import net.bcnnm.notifications.model.AgentReport;
 import net.bcnnm.notifications.model.TaskStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.ws.rs.*;
@@ -27,15 +23,15 @@ import java.util.List;
 @RestController
 @Path("/api")
 public class MainController {
-    private final MongoOperations mongoTemplate;
+    private final AgentReportDao reportDao;
     private final SlackChannelWriter slack;
 
     @Value("${reporting.service.url}")
     private String REPORTING_SERVICE_URL;
 
     @Autowired
-    public MainController(MongoOperations mongoTemplate, SlackChannelWriter slack) {
-        this.mongoTemplate = mongoTemplate;
+    public MainController(AgentReportDao reportDao, SlackChannelWriter slack) {
+        this.reportDao = reportDao;
         this.slack = slack;
     }
 
@@ -44,17 +40,7 @@ public class MainController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void report(AgentReport report) {
-        Query query = new Query();
-        query.addCriteria(Criteria.where("taskId").is(report.getTaskId()));
-        query.addCriteria(Criteria.where("agentIp").is(report.getAgentIp()));
-
-        Update update = new Update();
-        update.set("timestamp", report.getTimestamp());
-        update.set("progress", report.getProgress());
-        update.set("status", report.getStatus());
-        update.pushAll("info", report.getInfo().toArray());
-
-        mongoTemplate.upsert(query, update, AgentReport.class);
+        reportDao.saveReport(report);
 
         try {
             slack.writeMessage(SlackFormatter.format(report, AgentReport.class));
@@ -69,15 +55,14 @@ public class MainController {
     @Path("/task")
     @Produces(MediaType.APPLICATION_JSON)
     public List<AgentReport> listReports() {
-        return mongoTemplate.findAll(AgentReport.class);
+        return reportDao.getReportList();
     }
 
     @GET
     @Path("/task/{taskId}")
     @Produces(MediaType.APPLICATION_JSON)
     public AgentReport getReportByTask(@PathParam("taskId") String taskId) {
-        Query byTask = new Query().addCriteria(Criteria.where("taskId").is(taskId));
-        return mongoTemplate.findOne(byTask, AgentReport.class);
+        return reportDao.getReport(taskId);
     }
 
     @GET
@@ -90,14 +75,11 @@ public class MainController {
 
     // FOR TEST PURPOSE ONLY
 
-    /**
-     * Clears MongoDB storage
-     */
     @GET
     @Path("/clear")
     @Produces(MediaType.APPLICATION_JSON)
     public void clear() {
-        mongoTemplate.dropCollection(AgentReport.class);
+        reportDao.clearAllReports();
     }
 
     /**
