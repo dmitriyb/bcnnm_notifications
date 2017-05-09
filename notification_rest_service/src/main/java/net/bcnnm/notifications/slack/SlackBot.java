@@ -38,7 +38,16 @@ public class SlackBot extends Bot{
     public void onMention(WebSocketSession session, Event event) {
         String text = event.getText();
         String[] textSplit = text.split(" ", 3);
-        Command command = Command.valueOf(textSplit[1].toUpperCase());
+
+        Command command;
+        try {
+            command = Command.valueOf(textSplit[1].toUpperCase());
+        }
+        catch (IllegalArgumentException e) {
+            reply(session, event, new Message(String.format("Unknown command: %s", textSplit[1])));
+            return;
+        }
+
         String params = textSplit[2];
         switch (command) {
             case REQUEST:
@@ -46,7 +55,7 @@ public class SlackBot extends Bot{
                 reply(session, event, new Message(response));
                 break;
             default:
-                throw new UnsupportedOperationException(String.format("Unknown command: %s", command));
+                reply(session, event, new Message(String.format("Unknown command: %s", command)));
         }
     }
 
