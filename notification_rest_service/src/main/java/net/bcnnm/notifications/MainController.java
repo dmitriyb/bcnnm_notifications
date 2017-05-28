@@ -5,8 +5,8 @@ import net.bcnnm.notifications.slack.format.SlackFormatter;
 import net.bcnnm.notifications.slack.format.SlackFormatterException;
 import net.bcnnm.notifications.model.AgentReport;
 import net.bcnnm.notifications.model.TaskStatus;
+import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.ws.rs.*;
@@ -16,6 +16,8 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -25,9 +27,6 @@ import java.util.List;
 public class MainController {
     private final AgentReportDao reportDao;
     private final SlackChannelWriter slack;
-
-    @Value("${reporting.service.url}")
-    private String REPORTING_SERVICE_URL;
 
     @Autowired
     public MainController(AgentReportDao reportDao, SlackChannelWriter slack) {
@@ -68,8 +67,18 @@ public class MainController {
     @GET
     @Path("/request/{taskId}")
     public Response requestReport(@PathParam("taskId") String taskId) {
+        AgentReport lastReport = reportDao.getReport(taskId);
+        if (lastReport == null) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        String agentHost = lastReport.getAgentIp();
+
+        UriBuilder builder = new JerseyUriBuilder();
+        URI uri = builder.scheme("http").host(agentHost).port(8080).path("request").path(taskId).build();
+
         Client client = ClientBuilder.newClient();
-        WebTarget target = client.target(REPORTING_SERVICE_URL).path("request").path(taskId);
+        WebTarget target = client.target(uri);
         return target.request().get();
     }
 
@@ -97,7 +106,7 @@ public class MainController {
         }
 
         Client client = ClientBuilder.newClient();
-        WebTarget target = client.target("http://localhost:8080").path("api").path("report");
+        WebTarget target = client.target("http://localhost:8090").path("api").path("report");
         AgentReport agentReport = new AgentReport(taskId,
                                                     localhostIp,
                                                     new Date(),

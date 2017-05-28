@@ -5,22 +5,26 @@ import me.ramswaroop.jbot.core.slack.Controller;
 import me.ramswaroop.jbot.core.slack.EventType;
 import me.ramswaroop.jbot.core.slack.models.Event;
 import me.ramswaroop.jbot.core.slack.models.Message;
-import org.springframework.beans.factory.annotation.Value;
+import net.bcnnm.notifications.AgentReportDao;
+import net.bcnnm.notifications.model.AgentReport;
+import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.UriBuilder;
+import java.net.URI;
 
 @Component
 public class SlackBot extends Bot{
+    private final AgentReportDao reportDao;
+
     private final String token;
 
-    @Value("${reporting.service.url}")
-    private String REPORTING_SERVICE_URL;
-
-    public SlackBot() {
+    public SlackBot(AgentReportDao reportDao) {
+        this.reportDao = reportDao;
         token = System.getProperty("token");
     }
 
@@ -60,8 +64,17 @@ public class SlackBot extends Bot{
     }
 
     private String handleRequest(String taskId) {
+        AgentReport lastReport = reportDao.getReport(taskId);
+        if (lastReport == null) {
+            return String.format("Agent host is unknown! No data found in database for task: %s", taskId);
+        }
+        String agentHost = lastReport.getAgentIp();
+
+        UriBuilder builder = new JerseyUriBuilder();
+        URI uri = builder.scheme("http").host(agentHost).port(8080).path("request").path(taskId).build();
+
         Client client = ClientBuilder.newClient();
-        WebTarget target = client.target(REPORTING_SERVICE_URL).path("request").path(taskId);
+        WebTarget target = client.target(uri);
 
         if (target.request().get().getStatus() == 200) {
             return "Request was successfully sent.";
