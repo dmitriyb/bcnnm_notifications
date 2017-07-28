@@ -106,7 +106,7 @@ public class MainController {
         }
 
         Client client = ClientBuilder.newClient();
-        WebTarget target = client.target("http://localhost:8090").path("api").path("report");
+        WebTarget target = client.target("http://localhost:8080").path("api").path("report");
         AgentReport agentReport = new AgentReport(taskId,
                                                     localhostIp,
                                                     new Date(),

@@ -8,6 +8,7 @@ import me.ramswaroop.jbot.core.slack.models.Message;
 import net.bcnnm.notifications.AgentReportDao;
 import net.bcnnm.notifications.model.AgentReport;
 import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -16,10 +17,15 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class SlackBot extends Bot{
     private final AgentReportDao reportDao;
+
+    @Autowired
+    private List<ReportsAggregator> reportsAggregators;
 
     private final String token;
 
@@ -58,9 +64,40 @@ public class SlackBot extends Bot{
                 String response = handleRequest(params);
                 reply(session, event, new Message(response));
                 break;
+            case STAT:
+                response = handleStat(params);
+                reply(session, event, new Message(response));
+                break;
             default:
                 reply(session, event, new Message(String.format("Unknown command: %s", command)));
         }
+    }
+
+    private String handleStat(String paramsString) {
+        String[] params = paramsString.split(" ", 4);
+        String function = params[0];
+        String key = params[1];
+        String prefix = params[2];
+
+        List<AgentReport> filteredReports = getFilteredByTaskPrefix(reportDao.getReportList(), prefix);
+
+        for (ReportsAggregator reportsAggregator : reportsAggregators) {
+            if (reportsAggregator.getName().equals(function)) {
+                try {
+                    return reportsAggregator.aggregate(filteredReports, key);
+                } catch (AggregationException e) {
+                    return String.format("Unable to aggregate by specified key: %s", key);
+                }
+            }
+        }
+
+        return String.format("Unknown function for aggregation: %s", function);
+    }
+
+    private List<AgentReport> getFilteredByTaskPrefix(List<AgentReport> reportList, String prefix) {
+        return reportList.stream()
+                .filter(report -> report.getTaskId().startsWith(prefix))
+                .collect(Collectors.toList());
     }
 
     private String handleRequest(String taskId) {

@@ -14,3 +14,18 @@ Request on demand (reporting stub run on localhost:8090 moves the task on +20% o
 <a href="http://localhost:8080/api/request/demanded_task">http://localhost:8080/api/request/demanded_task</a></br>
 <a href="http://localhost:8080/api/request/demanded_task">http://localhost:8080/api/request/demanded_task</a></br>
 <a href="http://localhost:8080/api/task/demanded_task">http://localhost:8080/api/task/demanded_task</a></br>
+</br>
+Test aggregation functions</br>
+<a href="http://localhost:8080/api/clear">http://localhost:8080/api/clear</a></br>
+<a href="http://localhost:8080/api/treport/PREFIX_01/0">http://localhost:8080/api/treport/PREFIX_01/0</a></br>
+<a href="http://localhost:8080/api/treport/PREFIX_01/15">http://localhost:8080/api/treport/PREFIX_01/15</a></br>
+<a href="http://localhost:8080/api/treport/PREFIX_02/0">http://localhost:8080/api/treport/PREFIX_02/0</a></br>
+<a href="http://localhost:8080/api/treport/PREFIX_02/45">http://localhost:8080/api/treport/PREFIX_02/45</a></br>
+Here we have two tasks with "PREFIX_" prefix and 15% and 45% progresses, so min progress would be 15, max 45, mean 30.
+</br>
+<a href="http://localhost:8080/api/treport/ANOTHER_01/85">http://localhost:8080/api/treport/ANOTHER_01/85</a></br>
+<a href="http://localhost:8080/api/treport/ANOTHER_02/35">http://localhost:8080/api/treport/ANOTHER_02/35</a></br>
+<a href="http://localhost:8080/api/treport/ANOTHER_03/80">http://localhost:8080/api/treport/ANOTHER_03/80</a></br>
+<a href="http://localhost:8080/api/treport/ANOTHER_02/55">http://localhost:8080/api/treport/ANOTHER_02/55</a></br>
+Here we have three tasks with "ANOTHER_" prefix and 85%, 55% and 80% progresses, so min progress would be 55, max 85, mean 73.3333.
+</br>
