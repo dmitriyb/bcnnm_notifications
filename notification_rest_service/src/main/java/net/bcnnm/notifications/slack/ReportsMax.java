@@ -26,16 +26,16 @@ public class ReportsMax implements ReportsAggregator {
         }
         Method keyGetter = keyPropertyDescriptor.getReadMethod();
 
-        long maxValue = reports.stream()
-                .mapToLong(report -> {
+        double maxValue = reports.stream()
+                .mapToDouble(report -> {
                     try {
-                        return ((Number) keyGetter.invoke(report)).longValue();
+                        return ((Number) keyGetter.invoke(report)).doubleValue();
                     } catch (IllegalAccessException | InvocationTargetException | ClassCastException e) {
                         // LOG exception here
                         throw new AggregationException(String.format("Failed to get value of field: %s", key), e);
                     }
                 })
-                .max().getAsLong();
+                .max().getAsDouble();
 
         return String.format("Key=%s, Max=%s",key, maxValue);
     }

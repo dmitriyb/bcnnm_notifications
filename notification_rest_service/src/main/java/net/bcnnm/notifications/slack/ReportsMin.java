@@ -26,16 +26,16 @@ public class ReportsMin implements ReportsAggregator {
         }
         Method keyGetter = keyPropertyDescriptor.getReadMethod();
 
-        long minValue = reports.stream()
-                .mapToLong(report -> {
+        double minValue = reports.stream()
+                .mapToDouble(report -> {
                     try {
-                        return ((Number) keyGetter.invoke(report)).longValue();
+                        return ((Number) keyGetter.invoke(report)).doubleValue();
                     } catch (IllegalAccessException | InvocationTargetException | ClassCastException e) {
                         // LOG exception here
                         throw new AggregationException(String.format("Failed to get value of field: %s", key), e);
                     }
                 })
-                .min().getAsLong();
+                .min().getAsDouble();
 
         return String.format("Key=%s, Min=%s",key, minValue);
     }
