@@ -8,7 +8,7 @@
     <artifactId>notification-rest-service</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -20,11 +20,7 @@
         <!--Spring boot starter-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jersey</artifactId>
+            <artifactId>spring-boot-starter</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -32,24 +28,25 @@
         </dependency>
 
         <!--Slack API-->
-        <dependency>
-            <groupId>com.github.allbegray</groupId>
-            <artifactId>slack-api</artifactId>
-            <version>v1.3.0.RELEASE</version>
-        </dependency>
-
-        <dependency>
+       <dependency>
             <groupId>me.ramswaroop.jbot</groupId>
             <artifactId>jbot</artifactId>
             <version>3.0.2</version>
         </dependency>
 
         <!--Misc-->
+        <!--<dependency>-->
+            <!--<groupId>org.junit.jupiter</groupId>-->
+            <!--<artifactId>junit-jupiter-api</artifactId>-->
+            <!--<version>RELEASE</version>-->
+        <!--</dependency>-->
+
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>RELEASE</version>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-common</artifactId>
+            <version>2.9</version>
         </dependency>
+
 
         <dependency>
             <groupId>commons-beanutils</groupId>
