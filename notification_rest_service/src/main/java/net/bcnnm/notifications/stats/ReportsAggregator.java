@@ -1,4 +1,4 @@
-package net.bcnnm.notifications.slack;
+package net.bcnnm.notifications.stats;
 
 import net.bcnnm.notifications.model.AgentReport;
 

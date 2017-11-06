@@ -1,4 +1,4 @@
-package net.bcnnm.notifications.slack;
+package net.bcnnm.notifications.stats;
 
 public class AggregationException extends RuntimeException {
     public AggregationException(String message) {

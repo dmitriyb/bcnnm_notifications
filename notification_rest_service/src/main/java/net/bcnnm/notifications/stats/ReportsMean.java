@@ -1,4 +1,4 @@
-package net.bcnnm.notifications.slack;
+package net.bcnnm.notifications.stats;
 
 import net.bcnnm.notifications.model.AgentReport;
 import org.springframework.stereotype.Component;
@@ -10,10 +10,10 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 
 @Component
-public class ReportsMax implements ReportsAggregator {
+public class ReportsMean implements ReportsAggregator{
     @Override
     public String getName() {
-        return "max";
+        return "mean";
     }
 
     @Override
@@ -26,7 +26,7 @@ public class ReportsMax implements ReportsAggregator {
         }
         Method keyGetter = keyPropertyDescriptor.getReadMethod();
 
-        double maxValue = reports.stream()
+        double meanValue = reports.stream()
                 .mapToDouble(report -> {
                     try {
                         return ((Number) keyGetter.invoke(report)).doubleValue();
@@ -35,8 +35,8 @@ public class ReportsMax implements ReportsAggregator {
                         throw new AggregationException(String.format("Failed to get value of field: %s", key), e);
                     }
                 })
-                .max().getAsDouble();
+                .average().getAsDouble();
 
-        return String.format("Key=%s, Max=%s",key, maxValue);
+        return String.format("Key=%s, Mean=%s",key, meanValue);
     }
 }
