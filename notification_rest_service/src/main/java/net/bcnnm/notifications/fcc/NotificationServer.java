@@ -11,62 +11,90 @@ import java.util.Iterator;
 
 public class NotificationServer {
 
-    public static void main(String[] args) throws IOException {
-        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
-        Selector selector = Selector.open();
+    private SocketChannel fccSocketChannel;
 
-        String hostname = "127.0.0.1";
-        final int serverPort = 9000;
-        serverSocketChannel.bind(new InetSocketAddress(hostname, serverPort));
-        serverSocketChannel.configureBlocking(false);
-        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+    public void run() {
+        try {
+            ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+            Selector selector = Selector.open();
 
-        System.out.println("Started server..");
+            String hostname = "127.0.0.1";
+            final int serverPort = 9000;
+            serverSocketChannel.bind(new InetSocketAddress(hostname, serverPort));
+            serverSocketChannel.configureBlocking(false);
+            serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
-        while (true) {
-            try {
-                selector.select();
-                Iterator iterator = selector.selectedKeys().iterator();
-                while (iterator.hasNext()) {
-                    SelectionKey selectionKey = (SelectionKey) iterator.next();
-                    iterator.remove();
+            System.out.println("Started server..");
 
-                    if (selectionKey.isAcceptable()) {
-                        SocketChannel sc = ((ServerSocketChannel) selectionKey.channel()).accept();
-                        sc.configureBlocking(false);
-                        sc.register(selector, SelectionKey.OP_READ);
+            while (true) {
+                try {
+                    selector.select();
+                    Iterator iterator = selector.selectedKeys().iterator();
+                    while (iterator.hasNext()) {
+                        SelectionKey selectionKey = (SelectionKey) iterator.next();
+                        iterator.remove();
 
-                        System.out.println("Connection accepted..");
+                        if (selectionKey.isAcceptable()) {
+                            fccSocketChannel = ((ServerSocketChannel) selectionKey.channel()).accept();
+                            fccSocketChannel.configureBlocking(false);
+                            fccSocketChannel.register(selector, SelectionKey.OP_READ);
+
+                            System.out.println("Connection accepted..");
+                        }
+                        if (selectionKey.isReadable()) {
+                            handleIncoming(selectionKey);
+                        }
                     }
-                    if (selectionKey.isReadable()) {
-                        handleIncoming(selectionKey);
-                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
     }
 
     private static void handleIncoming(SelectionKey key) throws IOException {
         ByteBuffer byteBuffer = ByteBuffer.allocate(1024 * 1024);
         SocketChannel socketChannel = (SocketChannel) key.channel();
-        socketChannel.read(byteBuffer);
-        byteBuffer.flip();
+        try {
+            int read = socketChannel.read(byteBuffer);
+            if (read == -1) {
+                System.out.println("Client unexpectedly disconected..");
+                socketChannel.close();
+            }
+            else {
+                byteBuffer.flip();
 
-        Message incomingMessage = Encoder.decode(byteBuffer.array());
-        byteBuffer.clear();
-        System.out.println("Recieved incoming message: " + incomingMessage.getMessageType());
+                Message incomingMessage = Encoder.decode(byteBuffer.array());
+                byteBuffer.clear();
+                System.out.println("Recieved incoming message: " + incomingMessage.getMessageType());
 
-        switch (incomingMessage.getMessageType()) {
-            case FCC_HELLO:
-                System.out.println("Responding with AUTH message..");
-                socketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccAuthMessage())));
-                break;
-            case FCC_STATUS:
-                break;
-            default:
-                break;
+                switch (incomingMessage.getMessageType()) {
+                    case FCC_HELLO:
+                        System.out.println("Responding with AUTH message..");
+                        socketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccAuthMessage())));
+                        break;
+                    case FCC_STATUS:
+                        System.out.println("Recieved status..");
+                        break;
+                    default:
+                        break;
+                }
+            }
+        } catch (IOException e) {
+            socketChannel.close();
+            e.printStackTrace();
+        }
+    }
+
+    public void askFccForStatus() {
+        try {
+            System.out.println("Asking FCC for status..");
+            fccSocketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccAskMessage())));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

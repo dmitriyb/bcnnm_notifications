@@ -15,15 +15,16 @@ public class Encoder {
                 return new FccHelloMessage();
             case FCC_AUTH:
                 return new FccAuthMessage();
-//            case FCC_ASK:
-//                return new FccAskMessage();
-//            case FCC_STATUS:
-//                return new FccStatusMessage(agentID);
+            case FCC_ASK:
+                return new FccAskMessage();
+            case FCC_STATUS:
+                return new FccStatusMessage();
 //            case FCC_ADD_EXPERIMENT:
 //                return decodePayload(messageType, agentID, payload);
 //            case FCC_KILL:
 //                return decodePayload(messageType, agentID, payload);
             default:
+                System.out.println(String.format("Unknown message type: %s", messageType));
                 return null;
         }
     }
