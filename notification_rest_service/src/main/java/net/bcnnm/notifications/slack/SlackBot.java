@@ -6,6 +6,7 @@ import me.ramswaroop.jbot.core.slack.EventType;
 import me.ramswaroop.jbot.core.slack.models.Event;
 import me.ramswaroop.jbot.core.slack.models.Message;
 import net.bcnnm.notifications.AgentReportDao;
+import net.bcnnm.notifications.fcc.NotificationServer;
 import net.bcnnm.notifications.model.AgentReport;
 import net.bcnnm.notifications.stats.AggregationException;
 import net.bcnnm.notifications.stats.ReportsAggregator;
@@ -28,6 +29,9 @@ public class SlackBot extends Bot{
 
     @Autowired
     private List<ReportsAggregator> reportsAggregators;
+
+    @Autowired
+    private NotificationServer notificationServer;
 
     private final String token;
 
@@ -69,6 +73,10 @@ public class SlackBot extends Bot{
             case STAT:
                 response = handleStat(params);
                 reply(session, event, new Message(response));
+                break;
+            case ASK:
+                notificationServer.askFccForStatus(session, event);
+//                reply(session, event, new Message("Asked FCC for status"));
                 break;
             default:
                 reply(session, event, new Message(String.format("Unknown command: %s", command)));

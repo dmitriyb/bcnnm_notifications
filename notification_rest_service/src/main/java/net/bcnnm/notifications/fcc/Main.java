@@ -14,6 +14,6 @@ public class Main {
 
         Thread.sleep(5000);
 
-        notificationServer.askFccForStatus();
+//        notificationServer.askFccForStatus(session, event);
     }
 }

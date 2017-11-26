@@ -1,5 +1,11 @@
 package net.bcnnm.notifications.fcc;
 
+import me.ramswaroop.jbot.core.slack.models.Event;
+import net.bcnnm.notifications.slack.SlackBot;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.web.socket.WebSocketSession;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -9,9 +15,15 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 
+@Component
 public class NotificationServer {
 
     private SocketChannel fccSocketChannel;
+    private Event event;
+    private WebSocketSession session;
+
+    @Autowired
+    private SlackBot slackBot;
 
     public void run() {
         try {
@@ -55,7 +67,7 @@ public class NotificationServer {
 
     }
 
-    private static void handleIncoming(SelectionKey key) throws IOException {
+    private void handleIncoming(SelectionKey key) throws IOException {
         ByteBuffer byteBuffer = ByteBuffer.allocate(1024 * 1024);
         SocketChannel socketChannel = (SocketChannel) key.channel();
         try {
@@ -78,6 +90,10 @@ public class NotificationServer {
                         break;
                     case FCC_STATUS:
                         System.out.println("Recieved status..");
+                        // having Session and Event shared this way
+                        // doesn't seem like a very good idea but will try for now
+                        // TODO: refactor
+                        slackBot.reply(session, event, new me.ramswaroop.jbot.core.slack.models.Message("%Some status from FCC%"));
                         break;
                     default:
                         break;
@@ -89,8 +105,11 @@ public class NotificationServer {
         }
     }
 
-    public void askFccForStatus() {
+    public void askFccForStatus(WebSocketSession session, Event event) {
         try {
+            this.session = session;
+            this.event = event;
+
             System.out.println("Asking FCC for status..");
             fccSocketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccAskMessage())));
         } catch (IOException e) {
