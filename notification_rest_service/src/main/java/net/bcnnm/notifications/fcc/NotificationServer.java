@@ -1,6 +1,10 @@
 package net.bcnnm.notifications.fcc;
 
 import me.ramswaroop.jbot.core.slack.models.Event;
+import net.bcnnm.notifications.fcc.model.FccAskMessage;
+import net.bcnnm.notifications.fcc.model.FccAuthMessage;
+import net.bcnnm.notifications.fcc.model.FccStatusMessage;
+import net.bcnnm.notifications.fcc.model.Message;
 import net.bcnnm.notifications.slack.SlackBot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -93,7 +97,8 @@ public class NotificationServer {
                         // having Session and Event shared this way
                         // doesn't seem like a very good idea but will try for now
                         // TODO: refactor
-                        slackBot.reply(session, event, new me.ramswaroop.jbot.core.slack.models.Message("%Some status from FCC%"));
+                        FccStatusMessage fccStatusMessage = (FccStatusMessage) incomingMessage;
+                        slackBot.replyWithObject(session, event, fccStatusMessage.getPayload());
                         break;
                     default:
                         break;

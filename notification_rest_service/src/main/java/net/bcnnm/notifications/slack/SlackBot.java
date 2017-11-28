@@ -8,6 +8,8 @@ import me.ramswaroop.jbot.core.slack.models.Message;
 import net.bcnnm.notifications.AgentReportDao;
 import net.bcnnm.notifications.fcc.NotificationServer;
 import net.bcnnm.notifications.model.AgentReport;
+import net.bcnnm.notifications.slack.format.SlackFormatter;
+import net.bcnnm.notifications.slack.format.SlackFormatterException;
 import net.bcnnm.notifications.stats.AggregationException;
 import net.bcnnm.notifications.stats.ReportsAggregator;
 import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
@@ -131,4 +133,12 @@ public class SlackBot extends Bot{
         }
     }
 
+    public void replyWithObject(WebSocketSession session, Event event, Object replyObject) {
+        try {
+            reply(session, event, new Message(SlackFormatter.format(replyObject, replyObject.getClass())));
+        } catch (SlackFormatterException e) {
+            System.out.println("Failed to reply with object");
+            e.printStackTrace();
+        }
+    }
 }

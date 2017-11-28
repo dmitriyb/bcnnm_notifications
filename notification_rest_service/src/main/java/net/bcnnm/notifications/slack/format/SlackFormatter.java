@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 public class SlackFormatter {
+    // TODO: can we get clazz field just from Object?
     public static String format(Object obj, Class clazz) throws SlackFormatterException {
         StringBuilder stringBuilder = new StringBuilder();
 

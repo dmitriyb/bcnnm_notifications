@@ -1,4 +1,4 @@
-package net.bcnnm.notifications.fcc;
+package net.bcnnm.notifications.fcc.model;
 
 public enum MessageType {
     FCC_HELLO(8),

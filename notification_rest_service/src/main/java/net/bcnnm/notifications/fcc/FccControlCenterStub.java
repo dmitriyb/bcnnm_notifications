@@ -1,11 +1,18 @@
 package net.bcnnm.notifications.fcc;
 
+import net.bcnnm.notifications.fcc.model.FccHelloMessage;
+import net.bcnnm.notifications.fcc.model.FccStatus;
+import net.bcnnm.notifications.fcc.model.FccStatusMessage;
+import net.bcnnm.notifications.fcc.model.Message;
+import net.bcnnm.notifications.fcc.model.MessageType;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.Arrays;
 import java.util.Iterator;
 
 public class FccControlCenterStub {
@@ -72,7 +79,10 @@ public class FccControlCenterStub {
                 switch (incomingMessage.getMessageType()) {
                     case FCC_ASK:
                         System.out.println("Responding with STATUS message..");
-                        socketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccStatusMessage())));
+
+                        FccStatus fccStatus = new FccStatus("FCC Stub", Arrays.asList("Agent One", "Agent Two"));
+
+                        socketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccStatusMessage(fccStatus))));
                         break;
                     default:
                         System.out.println("Unsupported message type");
