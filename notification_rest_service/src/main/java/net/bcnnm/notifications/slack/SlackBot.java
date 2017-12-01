@@ -149,7 +149,7 @@ public class SlackBot extends Bot{
             Pair<WebSocketSession, Event> asked = askQueue.poll();
             WebSocketSession session = asked.getKey();
             Event event = asked.getValue();
-            reply(session, event, new Message(SlackFormatter.format(replyObject, replyObject.getClass())));
+            reply(session, event, new Message(SlackFormatter.format(replyObject)));
         } catch (SlackFormatterException e) {
             System.out.println("Failed to reply with object");
             e.printStackTrace();
