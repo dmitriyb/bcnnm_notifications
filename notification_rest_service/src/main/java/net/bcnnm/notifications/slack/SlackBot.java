@@ -1,5 +1,6 @@
 package net.bcnnm.notifications.slack;
 
+import javafx.util.Pair;
 import me.ramswaroop.jbot.core.slack.Bot;
 import me.ramswaroop.jbot.core.slack.Controller;
 import me.ramswaroop.jbot.core.slack.EventType;
@@ -23,6 +24,8 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.stream.Collectors;
 
 @Component
@@ -35,11 +38,14 @@ public class SlackBot extends Bot{
     @Autowired
     private NotificationServer notificationServer;
 
+    private Queue<Pair<WebSocketSession, Event>> askQueue;
+
     private final String token;
 
     public SlackBot(AgentReportDao reportDao) {
         this.reportDao = reportDao;
         token = System.getProperty("token");
+        this.askQueue = new ArrayBlockingQueue<>(1000);
     }
 
     @Override
@@ -77,12 +83,17 @@ public class SlackBot extends Bot{
                 reply(session, event, new Message(response));
                 break;
             case ASK:
-                notificationServer.askFccForStatus(session, event);
-//                reply(session, event, new Message("Asked FCC for status"));
+                handleAsk(params, session, event);
+                reply(session, event, new Message("Asked FCC for status"));
                 break;
             default:
                 reply(session, event, new Message(String.format("Unknown command: %s", command)));
         }
+    }
+
+    private void handleAsk(String params, WebSocketSession session, Event event) {
+        askQueue.add(new Pair<>(session, event));
+        notificationServer.askFccForStatus();
     }
 
     private String handleStat(String paramsString) {
@@ -133,8 +144,11 @@ public class SlackBot extends Bot{
         }
     }
 
-    public void replyWithObject(WebSocketSession session, Event event, Object replyObject) {
+    public void replyWithObject(Object replyObject) {
         try {
+            Pair<WebSocketSession, Event> asked = askQueue.poll();
+            WebSocketSession session = asked.getKey();
+            Event event = asked.getValue();
             reply(session, event, new Message(SlackFormatter.format(replyObject, replyObject.getClass())));
         } catch (SlackFormatterException e) {
             System.out.println("Failed to reply with object");

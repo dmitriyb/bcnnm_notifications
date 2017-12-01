@@ -23,8 +23,6 @@ import java.util.Iterator;
 public class NotificationServer {
 
     private SocketChannel fccSocketChannel;
-    private Event event;
-    private WebSocketSession session;
 
     @Autowired
     private SlackBot slackBot;
@@ -94,11 +92,8 @@ public class NotificationServer {
                         break;
                     case FCC_STATUS:
                         System.out.println("Recieved status..");
-                        // having Session and Event shared this way
-                        // doesn't seem like a very good idea but will try for now
-                        // TODO: refactor
                         FccStatusMessage fccStatusMessage = (FccStatusMessage) incomingMessage;
-                        slackBot.replyWithObject(session, event, fccStatusMessage.getPayload());
+                        slackBot.replyWithObject(fccStatusMessage.getPayload());
                         break;
                     default:
                         break;
@@ -110,11 +105,8 @@ public class NotificationServer {
         }
     }
 
-    public void askFccForStatus(WebSocketSession session, Event event) {
+    public void askFccForStatus() {
         try {
-            this.session = session;
-            this.event = event;
-
             System.out.println("Asking FCC for status..");
             fccSocketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccAskMessage())));
         } catch (IOException e) {
