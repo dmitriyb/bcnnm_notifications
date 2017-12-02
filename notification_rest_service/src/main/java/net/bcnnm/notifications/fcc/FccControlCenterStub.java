@@ -1,10 +1,8 @@
 package net.bcnnm.notifications.fcc;
 
-import net.bcnnm.notifications.fcc.model.FccHelloMessage;
-import net.bcnnm.notifications.fcc.model.FccStatus;
-import net.bcnnm.notifications.fcc.model.FccStatusMessage;
-import net.bcnnm.notifications.fcc.model.Message;
-import net.bcnnm.notifications.fcc.model.MessageType;
+import net.bcnnm.notifications.fcc.model.*;
+import net.bcnnm.notifications.model.AgentReport;
+import net.bcnnm.notifications.model.TaskStatus;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -12,8 +10,14 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class FccControlCenterStub {
     public static void main(String[] args){
@@ -31,7 +35,35 @@ public class FccControlCenterStub {
             System.out.println("Server responded with: " + response.getMessageType());
 
             if (response.getMessageType() == MessageType.FCC_AUTH) {
-                System.out.println("Run stanby mode, ready for requests");
+                System.out.println("Run standby mode, ready for requests");
+
+                Timer timer = new Timer();
+                List<AgentReport> agentReports = new ArrayList<>(Arrays.asList(
+                        new AgentReport("Task One", "127.0.0.1", new Date(),
+                                TaskStatus.STARTED, 0, Collections.singletonList("First task info")),
+                        new AgentReport("Task Two", "127.0.0.1", new Date(),
+                                TaskStatus.STARTED, 0, Collections.singletonList("Second task info")),
+                        new AgentReport("Task One", "127.0.0.1", new Date(),
+                                TaskStatus.IN_PROGRESS, 65, Collections.singletonList("Progressig first task"))
+                ));
+
+                TimerTask sendReport = new TimerTask() {
+                    @Override
+                    public void run() {
+                        System.out.println("Timer Task: Sending report..");
+                        try {
+                            sc.write(ByteBuffer.wrap(Encoder.encode(new FccReportMessage(agentReports.get(0)))));
+                            agentReports.remove(0);
+                            if (agentReports.isEmpty()) {
+                                this.cancel();
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+                timer.schedule(sendReport, 10000, 10000);
+
                 run_standby(sc);
             }
 
@@ -74,7 +106,7 @@ public class FccControlCenterStub {
 
                 Message incomingMessage = Encoder.decode(byteBuffer.array());
                 byteBuffer.clear();
-                System.out.println("Recieved incoming message: " + incomingMessage.getMessageType());
+                System.out.println("Received incoming message: " + incomingMessage.getMessageType());
 
                 switch (incomingMessage.getMessageType()) {
                     case FCC_ASK:

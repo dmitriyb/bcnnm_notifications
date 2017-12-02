@@ -3,6 +3,7 @@ package net.bcnnm.notifications.fcc;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.bcnnm.notifications.fcc.model.*;
+import net.bcnnm.notifications.model.AgentReport;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -27,6 +28,9 @@ public class Encoder {
             case FCC_STATUS:
                 FccStatus fccStatus = decodeBody(body, FccStatus.class);
                 return new FccStatusMessage(fccStatus);
+            case FCC_REPORT:
+                AgentReport agentReport = decodeBody(body, AgentReport.class);
+                return new FccReportMessage(agentReport);
 //            case FCC_ADD_EXPERIMENT:
 //                return decodePayload(messageType, agentID, payload);
 //            case FCC_KILL:

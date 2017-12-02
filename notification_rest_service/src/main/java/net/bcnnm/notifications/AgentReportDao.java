@@ -41,10 +41,4 @@ public class AgentReportDao {
         Query byTask = new Query().addCriteria(Criteria.where("taskId").is(taskId));
         return mongoTemplate.findOne(byTask, AgentReport.class);
     }
-
-    // FOR TEST PURPOSE ONLY
-    public void clearAllReports() {
-        mongoTemplate.dropCollection(AgentReport.class);
-    }
-
 }

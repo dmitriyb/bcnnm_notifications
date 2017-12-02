@@ -1,14 +1,13 @@
 package net.bcnnm.notifications.fcc;
 
-import me.ramswaroop.jbot.core.slack.models.Event;
-import net.bcnnm.notifications.fcc.model.FccAskMessage;
-import net.bcnnm.notifications.fcc.model.FccAuthMessage;
-import net.bcnnm.notifications.fcc.model.FccStatusMessage;
-import net.bcnnm.notifications.fcc.model.Message;
+import net.bcnnm.notifications.AgentReportDao;
+import net.bcnnm.notifications.fcc.model.*;
+import net.bcnnm.notifications.model.AgentReport;
 import net.bcnnm.notifications.slack.SlackBot;
+import net.bcnnm.notifications.stats.AggregationException;
+import net.bcnnm.notifications.stats.ReportsAggregator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -18,14 +17,23 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class NotificationServer {
-
-    private SocketChannel fccSocketChannel;
+    private final AgentReportDao reportDao;
+    private final List<ReportsAggregator> reportsAggregators;
 
     @Autowired
     private SlackBot slackBot;
+    private SocketChannel fccSocketChannel;
+
+    @Autowired
+    public NotificationServer(AgentReportDao reportDao, List<ReportsAggregator> reportsAggregators) {
+        this.reportDao = reportDao;
+        this.reportsAggregators = reportsAggregators;
+    }
 
     public void run() {
         try {
@@ -83,17 +91,27 @@ public class NotificationServer {
 
                 Message incomingMessage = Encoder.decode(byteBuffer.array());
                 byteBuffer.clear();
-                System.out.println("Recieved incoming message: " + incomingMessage.getMessageType());
+                System.out.println("Received incoming message: " + incomingMessage.getMessageType());
 
                 switch (incomingMessage.getMessageType()) {
                     case FCC_HELLO:
                         System.out.println("Responding with AUTH message..");
+
                         socketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccAuthMessage())));
                         break;
                     case FCC_STATUS:
-                        System.out.println("Recieved status..");
+                        System.out.println("Received status..");
                         FccStatusMessage fccStatusMessage = (FccStatusMessage) incomingMessage;
-                        slackBot.replyWithObject(fccStatusMessage.getPayload());
+
+                        slackBot.replyWithStatus(fccStatusMessage.getPayload());
+                        break;
+                    case FCC_REPORT:
+                        System.out.println("Received report..");
+                        FccReportMessage fccReportMessage = (FccReportMessage) incomingMessage;
+                        AgentReport receivedReport = fccReportMessage.getPayload();
+
+                        reportDao.saveReport(receivedReport);
+                        slackBot.sendToDefaultChannel(receivedReport);
                         break;
                     default:
                         break;
@@ -112,5 +130,31 @@ public class NotificationServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getStat(String function, String key, String prefix) {
+        List<AgentReport> filteredReports = getFilteredByTaskPrefix(reportDao.getReportList(), prefix);
+
+        for (ReportsAggregator reportsAggregator : reportsAggregators) {
+            if (reportsAggregator.getName().equals(function)) {
+                try {
+                    return reportsAggregator.aggregate(filteredReports, key);
+                } catch (AggregationException e) {
+                    return String.format("Unable to aggregate by specified key: %s", key);
+                }
+            }
+        }
+
+        return String.format("Unknown function for aggregation: %s", function);
+    }
+
+    private List<AgentReport> getFilteredByTaskPrefix(List<AgentReport> reportList, String prefix) {
+        return reportList.stream()
+                .filter(report -> report.getTaskId().startsWith(prefix))
+                .collect(Collectors.toList());
+    }
+
+    public AgentReport getReport(String taskId) {
+        return reportDao.getReport(taskId);
     }
 }
