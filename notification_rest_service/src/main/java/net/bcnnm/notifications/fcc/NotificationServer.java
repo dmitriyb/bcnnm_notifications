@@ -3,6 +3,7 @@ package net.bcnnm.notifications.fcc;
 import net.bcnnm.notifications.AgentReportDao;
 import net.bcnnm.notifications.fcc.model.*;
 import net.bcnnm.notifications.model.AgentReport;
+import net.bcnnm.notifications.model.CommandType;
 import net.bcnnm.notifications.slack.SlackBot;
 import net.bcnnm.notifications.stats.AggregationException;
 import net.bcnnm.notifications.stats.ReportsAggregator;
@@ -113,6 +114,13 @@ public class NotificationServer {
                         reportDao.saveReport(receivedReport);
                         slackBot.sendToDefaultChannel(receivedReport);
                         break;
+                    case FCC_ACKNOWLEDGE:
+                        System.out.println("Recieved acknowledge..");
+                        FccAcknowledgeMessage fccAcknowledgeMessage = (FccAcknowledgeMessage) incomingMessage;
+                        FccAcknowledge acknowledge = fccAcknowledgeMessage.getPayload();
+
+                        slackBot.sendToDefaultChannel(acknowledge);
+                        break;
                     default:
                         break;
                 }
@@ -156,5 +164,25 @@ public class NotificationServer {
 
     public AgentReport getReport(String taskId) {
         return reportDao.getReport(taskId);
+    }
+
+    public void startExperiment(String experimentId) {
+        try {
+            System.out.println("Sending START command..");
+            FccCommand startCommand = new FccCommand(CommandType.START, experimentId);
+            fccSocketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccCommandMessage(startCommand))));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void stopExperiment(String experimentId) {
+        try {
+            System.out.println("Sending STOP command..");
+            FccCommand stopCommand = new FccCommand(CommandType.STOP, experimentId);
+            fccSocketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccCommandMessage(stopCommand))));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

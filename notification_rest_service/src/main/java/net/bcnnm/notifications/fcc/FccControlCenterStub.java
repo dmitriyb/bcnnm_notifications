@@ -116,6 +116,29 @@ public class FccControlCenterStub {
 
                         socketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccStatusMessage(fccStatus))));
                         break;
+                    case FCC_COMMAND:
+                        System.out.println("Responding with ACKNOWLEDGE message..");
+
+                        FccCommandMessage fccCommandMessage = (FccCommandMessage) incomingMessage;
+                        FccCommand fccCommand = fccCommandMessage.getPayload();
+
+                        FccAcknowledge fccAcknowledge;
+                        if (!fccCommand.getDetails().endsWith("TOFAIL")) {
+                            String ackDetails = String.format("%s, %s",
+                                    fccCommand.getCommandType(), fccCommand.getDetails());
+
+                            fccAcknowledge = new FccAcknowledge(FccAcknowledge.Status.OK, ackDetails);
+                        }
+                        else {
+                            String ackDetails = String.format("%s, %s",
+                                    fccCommand.getCommandType(), fccCommand.getDetails());
+
+                            fccAcknowledge = new FccAcknowledge(FccAcknowledge.Status.FAILED, ackDetails);
+                        }
+
+
+                        socketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccAcknowledgeMessage(fccAcknowledge))));
+                        break;
                     default:
                         System.out.println("Unsupported message type");
                 }

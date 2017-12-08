@@ -35,6 +35,12 @@ public class Encoder {
 //                return decodePayload(messageType, agentID, payload);
 //            case FCC_KILL:
 //                return decodePayload(messageType, agentID, payload);
+            case FCC_COMMAND:
+                FccCommand fccCommand = decodeBody(body, FccCommand.class);
+                return new FccCommandMessage(fccCommand);
+            case FCC_ACKNOWLEDGE:
+                FccAcknowledge acknowledge = decodeBody(body, FccAcknowledge.class);
+                return new FccAcknowledgeMessage(acknowledge);
             default:
                 System.out.println(String.format("Unknown message type: %s", messageType));
                 return null;

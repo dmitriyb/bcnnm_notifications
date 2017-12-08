@@ -9,6 +9,7 @@ import me.ramswaroop.jbot.core.slack.models.Message;
 import net.bcnnm.notifications.fcc.NotificationServer;
 import net.bcnnm.notifications.fcc.model.FccStatus;
 import net.bcnnm.notifications.model.AgentReport;
+import net.bcnnm.notifications.model.CommandType;
 import net.bcnnm.notifications.slack.format.SlackFormatter;
 import net.bcnnm.notifications.slack.format.SlackFormatterException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 @Component
 public class SlackBot extends Bot{
     private static final String SOME_ERROR_OCCURRED = "Some error occurred! See the logs for details.";
+    private static final String REMOTE_COMMAND_WAS_SENT = "Remote command was sent.";
 
     private final String token;
     private final String defaultChannel;
@@ -81,8 +83,33 @@ public class SlackBot extends Bot{
             case ASK:
                 handleAsk(params, session, event);
                 break;
+            case REMOTE:
+                handleRemote(params, session, event);
+                break;
             default:
                 reply(session, event, new Message(String.format("Unknown command: %s", command)));
+        }
+    }
+
+    private void handleRemote(String paramsString, WebSocketSession session, Event event) {
+        String[] params = paramsString.split(" ", 2);
+        CommandType commandType = CommandType.valueOf(params[0]);
+        String experimentId = params[1];
+
+        switch (commandType) {
+            case START:
+                notificationServer.startExperiment(experimentId);
+                reply(session, event, new Message(REMOTE_COMMAND_WAS_SENT));
+                break;
+            case STOP:
+                notificationServer.stopExperiment(experimentId);
+                reply(session, event, new Message(REMOTE_COMMAND_WAS_SENT));
+                break;
+            default:
+                String response = String.format("Unknown command type: %s", commandType);
+                System.out.println(response);
+                reply(session, event, new Message(response));
+                break;
         }
     }
 
