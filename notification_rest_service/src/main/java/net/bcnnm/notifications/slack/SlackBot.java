@@ -5,6 +5,7 @@ import me.ramswaroop.jbot.core.slack.Bot;
 import me.ramswaroop.jbot.core.slack.Controller;
 import me.ramswaroop.jbot.core.slack.EventType;
 import me.ramswaroop.jbot.core.slack.models.Event;
+import me.ramswaroop.jbot.core.slack.models.File;
 import me.ramswaroop.jbot.core.slack.models.Message;
 import net.bcnnm.notifications.fcc.NotificationServer;
 import net.bcnnm.notifications.fcc.model.FccStatus;
@@ -56,6 +57,14 @@ public class SlackBot extends Bot{
     public void afterConnectionEstablished(WebSocketSession session) {
         super.afterConnectionEstablished(session);
         this.defaultSession = session;
+    }
+
+    @Controller(events = {EventType.FILE_SHARE_MESSAGE})
+    public void onUpload(WebSocketSession session, Event event) {
+        File file = event.getFile();
+        notificationServer.uploadFile(file);
+
+        reply(session, event, new Message("File was sent to FCC"));
     }
 
     @Controller(events = {EventType.DIRECT_MENTION})

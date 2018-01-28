@@ -3,7 +3,9 @@ package net.bcnnm.notifications.fcc;
 import net.bcnnm.notifications.fcc.model.*;
 import net.bcnnm.notifications.model.AgentReport;
 import net.bcnnm.notifications.model.TaskStatus;
+import org.apache.commons.io.FileUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -86,13 +88,13 @@ public class FccControlCenterStub {
                 iterator.remove();
 
                 if (selectionKey.isReadable()) {
-                    handleAsk(selectionKey);
+                    handleIncoming(selectionKey);
                 }
             }
         }
     }
 
-    private static void handleAsk(SelectionKey key) throws IOException {
+    private static void handleIncoming(SelectionKey key) throws IOException {
         ByteBuffer byteBuffer = ByteBuffer.allocate(1024 * 1024);
         SocketChannel socketChannel = (SocketChannel) key.channel();
         try {
@@ -109,6 +111,10 @@ public class FccControlCenterStub {
                 System.out.println("Received incoming message: " + incomingMessage.getMessageType());
 
                 switch (incomingMessage.getMessageType()) {
+                    case FCC_HELLO:
+                        break;
+                    case FCC_AUTH:
+                        break;
                     case FCC_ASK:
                         System.out.println("Responding with STATUS message..");
 
@@ -116,28 +122,16 @@ public class FccControlCenterStub {
 
                         socketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccStatusMessage(fccStatus))));
                         break;
+                    case FCC_STATUS:
+                        break;
+                    case FCC_REPORT:
+                        break;
                     case FCC_COMMAND:
                         System.out.println("Responding with ACKNOWLEDGE message..");
 
-                        FccCommandMessage fccCommandMessage = (FccCommandMessage) incomingMessage;
-                        FccCommand fccCommand = fccCommandMessage.getPayload();
+                        FccAcknowledge acknowledge = buildAcknowledge((FccCommandMessage) incomingMessage);
 
-                        FccAcknowledge fccAcknowledge;
-                        if (!fccCommand.getDetails().endsWith("TOFAIL")) {
-                            String ackDetails = String.format("%s, %s",
-                                    fccCommand.getCommandType(), fccCommand.getDetails());
-
-                            fccAcknowledge = new FccAcknowledge(FccAcknowledge.Status.OK, ackDetails);
-                        }
-                        else {
-                            String ackDetails = String.format("%s, %s",
-                                    fccCommand.getCommandType(), fccCommand.getDetails());
-
-                            fccAcknowledge = new FccAcknowledge(FccAcknowledge.Status.FAILED, ackDetails);
-                        }
-
-
-                        socketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccAcknowledgeMessage(fccAcknowledge))));
+                        socketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccAcknowledgeMessage(acknowledge))));
                         break;
                     default:
                         System.out.println("Unsupported message type");
@@ -146,6 +140,44 @@ public class FccControlCenterStub {
         } catch (IOException e) {
             socketChannel.close();
             e.printStackTrace();
+        }
+    }
+
+    private static FccAcknowledge buildAcknowledge(FccCommandMessage incomingMessage) {
+        FccCommand fccCommand = incomingMessage.getPayload();
+
+        switch (fccCommand.getCommandType()) {
+            case START:
+            case STOP:
+                String experimentId = new String(fccCommand.getDetails());
+                if (!experimentId.endsWith("TOFAIL")) {
+                    String ackDetails = String.format("%s, %s",
+                            fccCommand.getCommandType(), experimentId);
+
+                    return new FccAcknowledge(FccAcknowledge.Status.OK, ackDetails);
+                }
+                else {
+                    String ackDetails = String.format("%s, %s",
+                            fccCommand.getCommandType(), experimentId);
+
+                    return new FccAcknowledge(FccAcknowledge.Status.FAILED, ackDetails);
+                }
+            case UPLOAD:
+                byte[] fileBytes = fccCommand.getDetails();
+
+                experimentId = "FccStubExperimentId";
+                try {
+                    FileUtils.writeByteArrayToFile(new File("config_received.zip"), fileBytes);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                String ackDetails = String.format("Configuration uploaded, experimentId: %s", experimentId);
+                return new FccAcknowledge(FccAcknowledge.Status.OK, ackDetails);
+
+            default:
+                System.out.println("Unsupported command type");
+                return new FccAcknowledge(FccAcknowledge.Status.FAILED, "Unsupported command type");
         }
     }
 }

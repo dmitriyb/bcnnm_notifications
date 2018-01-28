@@ -4,9 +4,9 @@ import net.bcnnm.notifications.model.CommandType;
 
 public class FccCommand implements Payload{
     private final CommandType commandType;
-    private final String details;
+    private final byte[] details;
 
-    public FccCommand(CommandType commandType, String details) {
+    public FccCommand(CommandType commandType, byte[] details) {
         this.commandType = commandType;
         this.details = details;
     }
@@ -15,7 +15,7 @@ public class FccCommand implements Payload{
         return commandType;
     }
 
-    public String getDetails() {
+    public byte[] getDetails() {
         return details;
     }
 }

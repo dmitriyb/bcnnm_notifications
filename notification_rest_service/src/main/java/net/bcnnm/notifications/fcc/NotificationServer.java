@@ -1,5 +1,9 @@
 package net.bcnnm.notifications.fcc;
 
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+import me.ramswaroop.jbot.core.slack.models.File;
 import net.bcnnm.notifications.AgentReportDao;
 import net.bcnnm.notifications.fcc.model.*;
 import net.bcnnm.notifications.model.AgentReport;
@@ -7,10 +11,12 @@ import net.bcnnm.notifications.model.CommandType;
 import net.bcnnm.notifications.slack.SlackBot;
 import net.bcnnm.notifications.stats.AggregationException;
 import net.bcnnm.notifications.stats.ReportsAggregator;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
@@ -169,7 +175,7 @@ public class NotificationServer {
     public void startExperiment(String experimentId) {
         try {
             System.out.println("Sending START command..");
-            FccCommand startCommand = new FccCommand(CommandType.START, experimentId);
+            FccCommand startCommand = new FccCommand(CommandType.START, experimentId.getBytes());
             fccSocketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccCommandMessage(startCommand))));
         } catch (IOException e) {
             e.printStackTrace();
@@ -179,10 +185,35 @@ public class NotificationServer {
     public void stopExperiment(String experimentId) {
         try {
             System.out.println("Sending STOP command..");
-            FccCommand stopCommand = new FccCommand(CommandType.STOP, experimentId);
+            FccCommand stopCommand = new FccCommand(CommandType.STOP, experimentId.getBytes());
             fccSocketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccCommandMessage(stopCommand))));
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void uploadFile(File file) {
+        try {
+            System.out.println("Sending UPLOAD command..");
+
+            byte[] fileBytes = fetchFile(file);
+            FccCommand uploadCommand = new FccCommand(CommandType.UPLOAD, fileBytes);
+
+            fccSocketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccCommandMessage(uploadCommand))));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private byte[] fetchFile(File file) throws IOException {
+        Client client = Client.create();
+        WebResource resource = client.resource(file.getUrlPrivate());
+        ClientResponse response = resource
+                .header("Authorization", String.format("Bearer %s", slackBot.getSlackToken()))
+                .get(ClientResponse.class);
+
+        InputStream is = response.getEntity(InputStream.class);
+
+        return IOUtils.toByteArray(is);
     }
 }
