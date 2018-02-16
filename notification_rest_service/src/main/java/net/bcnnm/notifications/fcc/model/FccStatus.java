@@ -4,6 +4,7 @@ import net.bcnnm.notifications.slack.format.SlackBold;
 import net.bcnnm.notifications.slack.format.SlackName;
 
 import java.util.List;
+import java.util.UUID;
 
 public class FccStatus implements Payload{
 
@@ -12,20 +13,26 @@ public class FccStatus implements Payload{
     private final String fccId;
 
     @SlackName("Current alive agents IDs")
-    private final List<String> agentsAlive;
+    private final List<UUID> agentsAlive;
 
-    public FccStatus(String fccId, List<String> agentsAlive) {
+    @SlackName("Current available experiments")
+    private final List<UUID> experiments;
+
+    public FccStatus(String fccId, List<UUID> agentsAlive, List<UUID> experiments) {
         this.fccId = fccId;
         this.agentsAlive = agentsAlive;
+        this.experiments = experiments;
     }
 
     public String getFccId() {
         return fccId;
     }
 
-    public List<String> getAgentsAlive() {
+    public List<UUID> getAgentsAlive() {
         return agentsAlive;
     }
 
-
+    public List<UUID> getExperiments() {
+        return experiments;
+    }
 }

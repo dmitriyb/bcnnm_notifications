@@ -48,7 +48,7 @@ public class NotificationServer {
             Selector selector = Selector.open();
 
             String hostname = "127.0.0.1";
-            final int serverPort = 9000;
+            final int serverPort = 9001;
             serverSocketChannel.bind(new InetSocketAddress(hostname, serverPort));
             serverSocketChannel.configureBlocking(false);
             serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);

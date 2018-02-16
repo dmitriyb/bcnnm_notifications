@@ -24,7 +24,7 @@ import java.util.TimerTask;
 public class FccControlCenterStub {
     public static void main(String[] args){
         try {
-            SocketChannel sc = SocketChannel.open(new InetSocketAddress("127.0.0.1", 9000));
+            SocketChannel sc = SocketChannel.open(new InetSocketAddress("127.0.0.1", 9001));
             System.out.println("Connected to server.. ");
 
             ByteBuffer buffer = ByteBuffer.wrap(Encoder.encode(new FccHelloMessage()));
@@ -118,9 +118,9 @@ public class FccControlCenterStub {
                     case FCC_ASK:
                         System.out.println("Responding with STATUS message..");
 
-                        FccStatus fccStatus = new FccStatus("FCC Stub", Arrays.asList("Agent One", "Agent Two"));
+                        //FccStatus fccStatus = new FccStatus("FCC Stub", Arrays.asList("Agent One", "Agent Two"), experiments);
 
-                        socketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccStatusMessage(fccStatus))));
+                        //socketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccStatusMessage(fccStatus))));
                         break;
                     case FCC_STATUS:
                         break;
