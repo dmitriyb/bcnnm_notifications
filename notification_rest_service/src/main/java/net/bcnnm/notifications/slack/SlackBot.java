@@ -19,6 +19,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
+import java.nio.channels.ServerSocketChannel;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -95,6 +96,8 @@ public class SlackBot extends Bot{
             case REMOTE:
                 handleRemote(params, session, event);
                 break;
+            case NS:
+                handleNs(params, session, event);
             default:
                 reply(session, event, new Message(String.format("Unknown command: %s", command)));
         }
@@ -126,6 +129,14 @@ public class SlackBot extends Bot{
         askQueue.add(new Pair<>(session, event));
         notificationServer.askFccForStatus();
         reply(session, event, new Message("Asked FCC for status"));
+    }
+
+    private void handleNs(String params, WebSocketSession session, Event event) {
+        ServerSocketChannel serverSocketChannel = notificationServer.getServerSocketChannel();
+        String localIP = serverSocketChannel.socket().toString();
+        String remoteIP = serverSocketChannel.socket().getInetAddress().toString();
+        String port = String.valueOf(serverSocketChannel.socket().getLocalPort());
+        reply(session, event, new Message("NS data: local IP: " + localIP + " remoteIP: " + remoteIP + " port: " + port));
     }
 
     private void handleStat(String paramsString, WebSocketSession session, Event event) {

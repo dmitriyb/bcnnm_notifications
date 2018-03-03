@@ -1,14 +1,12 @@
 package net.bcnnm.notifications.fcc.model;
 
-import net.bcnnm.notifications.model.AgentReport;
-
 public class FccReportMessage extends Message {
-    public FccReportMessage(AgentReport report) {
+    public FccReportMessage(FccReport report) {
         super(MessageType.FCC_REPORT, report);
     }
 
     @Override
-    public AgentReport getPayload() {
-        return (AgentReport) super.getPayload();
+    public FccReport getPayload() {
+        return (FccReport) super.getPayload();
     }
 }

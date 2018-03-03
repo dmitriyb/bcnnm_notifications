@@ -53,15 +53,15 @@ public class FccControlCenterStub {
                     @Override
                     public void run() {
                         System.out.println("Timer Task: Sending report..");
-                        try {
-                            sc.write(ByteBuffer.wrap(Encoder.encode(new FccReportMessage(agentReports.get(0)))));
+                        /*try {
+                            //sc.write(ByteBuffer.wrap(Encoder.encode(new FccReportMessage(agentReports.get(0)))));
                             agentReports.remove(0);
                             if (agentReports.isEmpty()) {
                                 this.cancel();
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
-                        }
+                        }*/
                     }
                 };
                 timer.schedule(sendReport, 10000, 10000);
@@ -148,6 +148,7 @@ public class FccControlCenterStub {
 
         switch (fccCommand.getCommandType()) {
             case START:
+
             case STOP:
                 String experimentId = new String(fccCommand.getDetails());
                 if (!experimentId.endsWith("TOFAIL")) {

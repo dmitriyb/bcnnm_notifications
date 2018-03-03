@@ -8,6 +8,7 @@ import net.bcnnm.notifications.AgentReportDao;
 import net.bcnnm.notifications.fcc.model.*;
 import net.bcnnm.notifications.model.AgentReport;
 import net.bcnnm.notifications.model.CommandType;
+import net.bcnnm.notifications.model.ExperimentReport;
 import net.bcnnm.notifications.slack.SlackBot;
 import net.bcnnm.notifications.stats.AggregationException;
 import net.bcnnm.notifications.stats.ReportsAggregator;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 public class NotificationServer {
     private final AgentReportDao reportDao;
     private final List<ReportsAggregator> reportsAggregators;
+    private ServerSocketChannel serverSocketChannel;
 
     @Autowired
     private SlackBot slackBot;
@@ -44,7 +46,7 @@ public class NotificationServer {
 
     public void run() {
         try {
-            ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+            serverSocketChannel = ServerSocketChannel.open();
             Selector selector = Selector.open();
 
             String hostname = "127.0.0.1";
@@ -84,11 +86,16 @@ public class NotificationServer {
 
     }
 
+    public ServerSocketChannel getServerSocketChannel() {
+        return serverSocketChannel;
+    }
+
     private void handleIncoming(SelectionKey key) throws IOException {
         ByteBuffer byteBuffer = ByteBuffer.allocate(1024 * 1024);
         SocketChannel socketChannel = (SocketChannel) key.channel();
         try {
             int read = socketChannel.read(byteBuffer);
+            System.out.printf("Socket channel info: %s, %s\n", socketChannel.getLocalAddress(), socketChannel.getRemoteAddress());
             if (read == -1) {
                 System.out.println("Client unexpectedly disconected..");
                 socketChannel.close();
@@ -115,9 +122,9 @@ public class NotificationServer {
                     case FCC_REPORT:
                         System.out.println("Received report..");
                         FccReportMessage fccReportMessage = (FccReportMessage) incomingMessage;
-                        AgentReport receivedReport = fccReportMessage.getPayload();
+                        FccReport receivedReport = fccReportMessage.getPayload();
 
-                        reportDao.saveReport(receivedReport);
+                        //reportDao.saveReport(receivedReport);
                         slackBot.sendToDefaultChannel(receivedReport);
                         break;
                     case FCC_ACKNOWLEDGE:
