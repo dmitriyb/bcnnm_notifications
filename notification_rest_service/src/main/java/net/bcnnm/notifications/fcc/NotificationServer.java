@@ -5,6 +5,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import me.ramswaroop.jbot.core.slack.models.File;
 import net.bcnnm.notifications.AgentReportDao;
+import net.bcnnm.notifications.Application;
 import net.bcnnm.notifications.fcc.model.*;
 import net.bcnnm.notifications.model.AgentReport;
 import net.bcnnm.notifications.model.CommandType;
@@ -14,6 +15,7 @@ import net.bcnnm.notifications.stats.AggregationException;
 import net.bcnnm.notifications.stats.ReportsAggregator;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -32,11 +34,14 @@ import java.util.stream.Collectors;
 public class NotificationServer {
     private final AgentReportDao reportDao;
     private final List<ReportsAggregator> reportsAggregators;
-    private ServerSocketChannel serverSocketChannel;
+    @Value("${hostname}")
+    private String hostname;
+
 
     @Autowired
     private SlackBot slackBot;
     private SocketChannel fccSocketChannel;
+    private ServerSocketChannel serverSocketChannel;
 
     @Autowired
     public NotificationServer(AgentReportDao reportDao, List<ReportsAggregator> reportsAggregators) {
@@ -49,7 +54,6 @@ public class NotificationServer {
             serverSocketChannel = ServerSocketChannel.open();
             Selector selector = Selector.open();
 
-            String hostname = "127.0.0.1";
             final int serverPort = 9001;
             serverSocketChannel.bind(new InetSocketAddress(hostname, serverPort));
             serverSocketChannel.configureBlocking(false);
@@ -86,6 +90,7 @@ public class NotificationServer {
 
     }
 
+    @Autowired
     public ServerSocketChannel getServerSocketChannel() {
         return serverSocketChannel;
     }

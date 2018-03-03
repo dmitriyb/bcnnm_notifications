@@ -1,6 +1,5 @@
 package net.bcnnm.notifications.model;
 
-import com.synstorm.common.Utils.EvolutionUtils.Score.ScoreTable;
 import net.bcnnm.notifications.fcc.model.Payload;
 import net.bcnnm.notifications.slack.format.SlackBold;
 import net.bcnnm.notifications.slack.format.SlackIgnore;
