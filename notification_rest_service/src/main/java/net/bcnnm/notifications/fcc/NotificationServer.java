@@ -127,7 +127,7 @@ public class NotificationServer {
                     case FCC_REPORT:
                         System.out.println("Received report..");
                         FccReportMessage fccReportMessage = (FccReportMessage) incomingMessage;
-                        FccReport receivedReport = fccReportMessage.getPayload();
+                        ExperimentReport receivedReport = fccReportMessage.getPayload();
 
                         //reportDao.saveReport(receivedReport);
                         slackBot.sendToDefaultChannel(receivedReport);

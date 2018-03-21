@@ -6,6 +6,8 @@ import net.bcnnm.notifications.slack.format.SlackIgnore;
 import net.bcnnm.notifications.slack.format.SlackName;
 import org.springframework.data.annotation.Id;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -20,8 +22,8 @@ public class ExperimentReport implements Payload {
     private String experimentId;
 
     @SlackBold
-    @SlackName("Timestamp")
-    private Date timestamp;
+    @SlackName("Modeling time")
+    private long modelingTime;
 
     @SlackBold
     @SlackName("Status")
@@ -38,10 +40,10 @@ public class ExperimentReport implements Payload {
 
     //region Constructors
 
-    public ExperimentReport(String id, String experimentId, Date timestamp, TaskStatus status, int progress, List<String> info) {
+    public ExperimentReport(String id, String experimentId, long modelingTime, TaskStatus status, int progress, List<String> info) {
         this.id = id;
         this.experimentId = experimentId;
-        this.timestamp = timestamp;
+        this.modelingTime = modelingTime;
         this.status = status;
         this.progress = progress;
         this.info = info;
@@ -68,12 +70,18 @@ public class ExperimentReport implements Payload {
         this.experimentId = experimentId;
     }
 
-    public Date getTimestamp() {
-        return timestamp;
+    public long getModelingTime() {
+        return modelingTime;
     }
 
-    public void setTimestamp(Date timestamp) {
-        this.timestamp = timestamp;
+    public void setModelingTime(long modelingTime) {
+        this.modelingTime = modelingTime;
+    }
+
+    public String getFormattedModelingTime() {
+        Date mTime = new Date(modelingTime);
+        DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss:SSS");
+        return dateFormat.format(mTime);
     }
 
     public TaskStatus getStatus() {
@@ -104,7 +112,7 @@ public class ExperimentReport implements Payload {
     @Override
     public String toString() {
         return "Experiment Report: " + id + "\n" +
-                "timestamp=" + timestamp +
+                "modelingTime=" + getFormattedModelingTime() +
                 ", status=" + status + "\n" +
                 //", progress=" + progress +
                 "info: \n" + info;

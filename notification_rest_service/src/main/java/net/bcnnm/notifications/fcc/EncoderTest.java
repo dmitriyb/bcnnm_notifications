@@ -3,6 +3,8 @@ package net.bcnnm.notifications.fcc;
 import net.bcnnm.notifications.fcc.model.FccReport;
 import net.bcnnm.notifications.fcc.model.FccReportMessage;
 import net.bcnnm.notifications.fcc.model.Message;
+import net.bcnnm.notifications.model.ExperimentReport;
+import net.bcnnm.notifications.model.TaskStatus;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -23,11 +25,11 @@ public class EncoderTest {
 
         System.out.printf("Fcc id: %s, experimentId: %s, strings: %s\n\n", fccId, experimentId, strings);
 
-        FccReport fccReport = new FccReport(fccId.toString(), experimentId, new Date(), strings);
-        byte[] encoded = Encoder.encode(new FccReportMessage(fccReport));
+        ExperimentReport experimentReport = new ExperimentReport(fccId.toString(), experimentId.toString(), 0L, TaskStatus.FINISHED, 100 , strings);
+        byte[] encoded = Encoder.encode(new FccReportMessage(experimentReport));
 
         Message decodedMessage = Encoder.decode(encoded);
-        FccReport fccReport1 = ((FccReportMessage) decodedMessage).getPayload();
-        System.out.printf("Fcc id: %s, experimentId: %s, strings: %s", fccReport1.getFccId(), fccReport1.getExperimentId(), fccReport1.getInfo());
+        ExperimentReport fccReport1 = ((FccReportMessage) decodedMessage).getPayload();
+        System.out.printf("ExperimentId: %s, strings: %s", fccReport1.getExperimentId(), fccReport1.getInfo());
     }
 }

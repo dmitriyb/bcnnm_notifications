@@ -30,7 +30,7 @@ public class Encoder {
                 FccStatus fccStatus = decodeBody(body, FccStatus.class);
                 return new FccStatusMessage(fccStatus);
             case FCC_REPORT:
-                FccReport experimentReport = decodeBody(body, FccReport.class);
+                ExperimentReport experimentReport = decodeBody(body, ExperimentReport.class);
                 return new FccReportMessage(experimentReport);
 //            case FCC_ADD_EXPERIMENT:
 //                return decodePayload(messageType, agentID, payload);
