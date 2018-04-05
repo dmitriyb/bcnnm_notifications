@@ -1,0 +1,46 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'application'
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    apply plugin: 'application'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven { url "https://repo.spring.io/libs-release" }
+        maven { url "https://jitpack.io" }
+        maven { url "http://repo.maven.apache.org/maven2" }
+    }
+}
+
+
+project(':reporting_service_stub') {
+    task fatJar(type: Jar) {
+        manifest {
+            attributes 'Implementation-Title': 'BCNNM Notifications Server JAR',
+                    'Main-Class': 'net.bcnnm.stub.Stub'
+        }
+        baseName = project.name + '-all'
+        from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+        with jar
+    }
+}
+
+project(':notification_rest_service') {
+    task fatJar(type: Jar) {
+        manifest {
+            attributes 'Implementation-Title': 'BCNNM Notifications Server JAR',
+                    'Main-Class': 'net.bcnnm.notifications.NotificationServer'
+        }
+        baseName = project.name + '-all'
+        from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+        with jar
+    }
+}
+

@@ -5,7 +5,6 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import me.ramswaroop.jbot.core.slack.models.File;
 import net.bcnnm.notifications.AgentReportDao;
-import net.bcnnm.notifications.Application;
 import net.bcnnm.notifications.fcc.model.*;
 import net.bcnnm.notifications.model.AgentReport;
 import net.bcnnm.notifications.model.CommandType;

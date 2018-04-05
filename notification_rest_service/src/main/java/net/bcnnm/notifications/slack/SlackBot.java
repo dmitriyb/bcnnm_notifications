@@ -1,9 +1,9 @@
 package net.bcnnm.notifications.slack;
 
 import javafx.util.Pair;
+import me.ramswaroop.jbot.core.common.Controller;
+import me.ramswaroop.jbot.core.common.EventType;
 import me.ramswaroop.jbot.core.slack.Bot;
-import me.ramswaroop.jbot.core.slack.Controller;
-import me.ramswaroop.jbot.core.slack.EventType;
 import me.ramswaroop.jbot.core.slack.models.Event;
 import me.ramswaroop.jbot.core.slack.models.File;
 import me.ramswaroop.jbot.core.slack.models.Message;
@@ -60,7 +60,7 @@ public class SlackBot extends Bot{
         this.defaultSession = session;
     }
 
-    @Controller(events = {EventType.FILE_SHARE_MESSAGE})
+    @Controller(events = {EventType.FILE_SHARED})
     public void onUpload(WebSocketSession session, Event event) {
         File file = event.getFile();
         notificationServer.uploadFile(file);

@@ -2,6 +2,8 @@ apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'org.springframework.boot'
 
+apply plugin: 'org.springframework.boot'
+
 buildscript {
     repositories {
         mavenCentral()
@@ -11,55 +13,35 @@ buildscript {
     }
 }
 
-group = 'net.bcnnm.notifications'
-version = '1.1'
-
-description = """"""
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
+
 tasks.withType(JavaCompile) {
 	options.encoding = 'UTF-8'
 }
 
 
-springBoot {
-    executable = true
-}
-
-repositories {
-        
-     maven { url "https://repo.spring.io/libs-release" }
-     maven { url "https://jitpack.io" }
-     maven { url "http://repo.maven.apache.org/maven2" }
-}
 dependencies {
     compile(group: 'org.springframework.boot', name: 'spring-boot-starter', version:'1.5.2.RELEASE') {
-exclude(module: 'commons-logging')
+        exclude(module: 'commons-logging')
     }
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-mongodb', version:'1.5.2.RELEASE'
-    //compile group: 'me.ramswaroop.jbot', name: 'jbot', version: '3.0.2'
+    compile group: 'me.ramswaroop.jbot', name: 'jbot', version: '4.0.1'
     compile group: 'com.sun.jersey', name: 'jersey-client', version:'1.8'
     compile group: 'org.glassfish.jersey.core', name: 'jersey-common', version:'2.9'
     compile(group: 'commons-beanutils', name: 'commons-beanutils', version:'1.8.3') {
-exclude(module: 'commons-logging')
+        exclude(module: 'commons-logging')
     }
     compile group: 'org.apache.commons', name: 'commons-math3', version:'3.0'
     compile group: 'commons-io', name: 'commons-io', version:'2.5'
     compile group: 'com.google.code.gson', name: 'gson', version:'2.8.2'
-//    compile files("libsDirName/Utils.jar")
     compile group: 'junit', name: 'junit', version: '4.12'
-    compile 'com.github.butnotstupid:jbot:a008efc1732f78d2723ca2abafb426815df1590c'
+    //compile 'com.github.butnotstupid:jbot:a008efc1732f78d2723ca2abafb426815df1590c'
 }
 
-apply plugin: 'org.springframework.boot'
 
-task fatJar(type: Jar) {
-    manifest {
-        attributes 'Implementation-Title': 'BCNNM Notifications Server JAR',
-                'Main-Class': 'net.bcnnm.notifications.Application'
+
+springBoot {
+        executable = true
     }
-    baseName = project.name + '-all'
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    with jar
-}
