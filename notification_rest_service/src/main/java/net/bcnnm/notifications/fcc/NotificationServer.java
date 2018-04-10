@@ -5,7 +5,15 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import me.ramswaroop.jbot.core.slack.models.File;
 import net.bcnnm.notifications.AgentReportDao;
-import net.bcnnm.notifications.fcc.model.*;
+import net.bcnnm.notifications.fcc.model.FccAcknowledge;
+import net.bcnnm.notifications.fcc.model.FccAcknowledgeMessage;
+import net.bcnnm.notifications.fcc.model.FccAskMessage;
+import net.bcnnm.notifications.fcc.model.FccAuthMessage;
+import net.bcnnm.notifications.fcc.model.FccCommand;
+import net.bcnnm.notifications.fcc.model.FccCommandMessage;
+import net.bcnnm.notifications.fcc.model.FccReportMessage;
+import net.bcnnm.notifications.fcc.model.FccStatusMessage;
+import net.bcnnm.notifications.fcc.model.Message;
 import net.bcnnm.notifications.model.AgentReport;
 import net.bcnnm.notifications.model.CommandType;
 import net.bcnnm.notifications.model.ExperimentReport;
@@ -28,6 +36,9 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static net.bcnnm.notifications.fcc.ProtocolCommunication.readFromSocket;
+import static net.bcnnm.notifications.fcc.ProtocolCommunication.writeToSocket;
 
 @Component
 public class NotificationServer {
@@ -94,67 +105,52 @@ public class NotificationServer {
         return serverSocketChannel;
     }
 
-    private void handleIncoming(SelectionKey key) throws IOException {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(1024 * 1024);
+    private void handleIncoming(SelectionKey key) {
         SocketChannel socketChannel = (SocketChannel) key.channel();
-        try {
-            int read = socketChannel.read(byteBuffer);
-            System.out.printf("Socket channel info: %s, %s\n", socketChannel.getLocalAddress(), socketChannel.getRemoteAddress());
-            if (read == -1) {
-                System.out.println("Client unexpectedly disconected..");
-                socketChannel.close();
-            }
-            else {
-                byteBuffer.flip();
-
-                Message incomingMessage = Encoder.decode(byteBuffer.array());
-                byteBuffer.clear();
-                System.out.println("Received incoming message: " + incomingMessage.getMessageType());
-
-                switch (incomingMessage.getMessageType()) {
-                    case FCC_HELLO:
-                        System.out.println("Responding with AUTH message..");
-
-                        socketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccAuthMessage())));
-                        break;
-                    case FCC_STATUS:
-                        System.out.println("Received status..");
-                        FccStatusMessage fccStatusMessage = (FccStatusMessage) incomingMessage;
-
-                        slackBot.replyWithStatus(fccStatusMessage.getPayload());
-                        break;
-                    case FCC_REPORT:
-                        System.out.println("Received report..");
-                        FccReportMessage fccReportMessage = (FccReportMessage) incomingMessage;
-                        ExperimentReport receivedReport = fccReportMessage.getPayload();
-
-                        //reportDao.saveReport(receivedReport);
-                        slackBot.sendToDefaultChannel(receivedReport);
-                        break;
-                    case FCC_ACKNOWLEDGE:
-                        System.out.println("Recieved acknowledge..");
-                        FccAcknowledgeMessage fccAcknowledgeMessage = (FccAcknowledgeMessage) incomingMessage;
-                        FccAcknowledge acknowledge = fccAcknowledgeMessage.getPayload();
-
-                        slackBot.sendToDefaultChannel(acknowledge);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        } catch (IOException e) {
-            socketChannel.close();
-            e.printStackTrace();
+        byte[] message = readFromSocket(socketChannel);
+        if (message.length == 0) {
+            System.out.println("Client unexpectedly disconnected..");
+            return;
         }
+        Message incomingMessage = Encoder.decode(message);
+        System.out.println("Received incoming message: " + incomingMessage.getMessageType());
+
+        switch (incomingMessage.getMessageType()) {
+            case FCC_HELLO:
+                System.out.println("Responding with AUTH message..");
+
+                writeToSocket(socketChannel, Encoder.encode(new FccAuthMessage()));
+                break;
+            case FCC_STATUS:
+                System.out.println("Received status..");
+                FccStatusMessage fccStatusMessage = (FccStatusMessage) incomingMessage;
+
+                slackBot.replyWithStatus(fccStatusMessage.getPayload());
+                break;
+            case FCC_REPORT:
+                System.out.println("Received report..");
+                FccReportMessage fccReportMessage = (FccReportMessage) incomingMessage;
+                ExperimentReport receivedReport = fccReportMessage.getPayload();
+
+                //reportDao.saveReport(receivedReport);
+                slackBot.sendToDefaultChannel(receivedReport);
+                break;
+            case FCC_ACKNOWLEDGE:
+                System.out.println("Recieved acknowledge..");
+                FccAcknowledgeMessage fccAcknowledgeMessage = (FccAcknowledgeMessage) incomingMessage;
+                FccAcknowledge acknowledge = fccAcknowledgeMessage.getPayload();
+
+                slackBot.sendToDefaultChannel(acknowledge);
+                break;
+            default:
+                break;
+        }
+
     }
 
     public void askFccForStatus() {
-        try {
-            System.out.println("Asking FCC for status..");
-            fccSocketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccAskMessage())));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        System.out.println("Asking FCC for status..");
+        writeToSocket(fccSocketChannel, Encoder.encode(new FccAskMessage()));
     }
 
     public String getStat(String function, String key, String prefix) {
@@ -184,23 +180,15 @@ public class NotificationServer {
     }
 
     public void startExperiment(String experimentId) {
-        try {
-            System.out.println("Sending START command..");
-            FccCommand startCommand = new FccCommand(CommandType.START, experimentId.getBytes());
-            fccSocketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccCommandMessage(startCommand))));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        System.out.println("Sending START command..");
+        FccCommand startCommand = new FccCommand(CommandType.START, experimentId.getBytes());
+        writeToSocket(fccSocketChannel, Encoder.encode(new FccCommandMessage(startCommand)));
     }
 
     public void stopExperiment(String experimentId) {
-        try {
-            System.out.println("Sending STOP command..");
-            FccCommand stopCommand = new FccCommand(CommandType.STOP, experimentId.getBytes());
-            fccSocketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccCommandMessage(stopCommand))));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        System.out.println("Sending STOP command..");
+        FccCommand stopCommand = new FccCommand(CommandType.STOP, experimentId.getBytes());
+        writeToSocket(fccSocketChannel, Encoder.encode(new FccCommandMessage(stopCommand)));
     }
 
     public void uploadFile(File file) {
@@ -210,7 +198,7 @@ public class NotificationServer {
             byte[] fileBytes = fetchFile(file);
             FccCommand uploadCommand = new FccCommand(CommandType.UPLOAD, fileBytes);
 
-            fccSocketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccCommandMessage(uploadCommand))));
+            writeToSocket(fccSocketChannel,Encoder.encode(new FccCommandMessage(uploadCommand)));
         } catch (IOException e) {
             e.printStackTrace();
         }

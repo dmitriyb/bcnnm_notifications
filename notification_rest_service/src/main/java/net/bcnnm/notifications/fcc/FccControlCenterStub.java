@@ -21,19 +21,19 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static net.bcnnm.notifications.fcc.ProtocolCommunication.readFromSocket;
+import static net.bcnnm.notifications.fcc.ProtocolCommunication.writeToSocket;
+
 public class FccControlCenterStub {
     public static void main(String[] args){
         try {
             SocketChannel sc = SocketChannel.open(new InetSocketAddress("127.0.0.1", 9001));
             System.out.println("Connected to server.. ");
 
-            ByteBuffer buffer = ByteBuffer.wrap(Encoder.encode(new FccHelloMessage()));
             System.out.println("Sending HELLO message.");
+            writeToSocket(sc, Encoder.encode(new FccHelloMessage()));
 
-            sc.write(buffer);
-            buffer.clear();
-            sc.read(buffer);
-            Message response = Encoder.decode(buffer.array());
+            Message response = Encoder.decode(readFromSocket(sc));
             System.out.println("Server responded with: " + response.getMessageType());
 
             if (response.getMessageType() == MessageType.FCC_AUTH) {
@@ -95,52 +95,44 @@ public class FccControlCenterStub {
     }
 
     private static void handleIncoming(SelectionKey key) throws IOException {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(1024 * 1024);
         SocketChannel socketChannel = (SocketChannel) key.channel();
-        try {
-            int read = socketChannel.read(byteBuffer);
-            if (read == -1) {
-                System.out.println("Server unexpectedly disconected..");
-                socketChannel.close();
-            }
-            else {
-                byteBuffer.flip();
 
-                Message incomingMessage = Encoder.decode(byteBuffer.array());
-                byteBuffer.clear();
-                System.out.println("Received incoming message: " + incomingMessage.getMessageType());
-
-                switch (incomingMessage.getMessageType()) {
-                    case FCC_HELLO:
-                        break;
-                    case FCC_AUTH:
-                        break;
-                    case FCC_ASK:
-                        System.out.println("Responding with STATUS message..");
-
-                        //FccStatus fccStatus = new FccStatus("FCC Stub", Arrays.asList("Agent One", "Agent Two"), experiments);
-
-                        //socketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccStatusMessage(fccStatus))));
-                        break;
-                    case FCC_STATUS:
-                        break;
-                    case FCC_REPORT:
-                        break;
-                    case FCC_COMMAND:
-                        System.out.println("Responding with ACKNOWLEDGE message..");
-
-                        FccAcknowledge acknowledge = buildAcknowledge((FccCommandMessage) incomingMessage);
-
-                        socketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccAcknowledgeMessage(acknowledge))));
-                        break;
-                    default:
-                        System.out.println("Unsupported message type");
-                }
-            }
-        } catch (IOException e) {
-            socketChannel.close();
-            e.printStackTrace();
+        byte[] message = readFromSocket(socketChannel);
+        if (message.length == 0) {
+            System.out.println("Server unexpectedly disconnected..");
+            return;
         }
+
+        Message incomingMessage = Encoder.decode(message);
+        System.out.println("Received incoming message: " + incomingMessage.getMessageType());
+
+        switch (incomingMessage.getMessageType()) {
+            case FCC_HELLO:
+                break;
+            case FCC_AUTH:
+                break;
+            case FCC_ASK:
+                System.out.println("Responding with STATUS message..");
+
+                //FccStatus fccStatus = new FccStatus("FCC Stub", Arrays.asList("Agent One", "Agent Two"), experiments);
+
+                //socketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccStatusMessage(fccStatus))));
+                break;
+            case FCC_STATUS:
+                break;
+            case FCC_REPORT:
+                break;
+            case FCC_COMMAND:
+                System.out.println("Responding with ACKNOWLEDGE message..");
+
+                FccAcknowledge acknowledge = buildAcknowledge((FccCommandMessage) incomingMessage);
+
+                writeToSocket(socketChannel, Encoder.encode(new FccAcknowledgeMessage(acknowledge)));
+                break;
+            default:
+                System.out.println("Unsupported message type");
+        }
+
     }
 
     private static FccAcknowledge buildAcknowledge(FccCommandMessage incomingMessage) {
