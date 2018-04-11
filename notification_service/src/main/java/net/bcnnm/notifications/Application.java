@@ -16,12 +16,12 @@ public class Application implements CommandLineRunner {
     @Autowired
     private ApplicationContext appContext;
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
 
         NotificationServer notificationServer = appContext.getBean(NotificationServer.class);
         ExecutorService executorService = Executors.newFixedThreadPool(5);

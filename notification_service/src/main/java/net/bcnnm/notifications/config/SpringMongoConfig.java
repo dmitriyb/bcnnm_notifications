@@ -13,7 +13,7 @@ public class SpringMongoConfig extends AbstractMongoConfiguration {
     }
 
     @Override
-    public Mongo mongo() throws Exception {
+    public Mongo mongo() {
         return new MongoClient("127.0.0.1");
     }
 }

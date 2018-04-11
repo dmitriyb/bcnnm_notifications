@@ -1,2 +1,1 @@
-include ':notification_rest_service'
-include ':reporting_service_stub'
+include ':notification_service'

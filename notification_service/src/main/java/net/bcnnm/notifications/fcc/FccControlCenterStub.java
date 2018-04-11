@@ -1,21 +1,25 @@
 package net.bcnnm.notifications.fcc;
 
-import net.bcnnm.notifications.fcc.model.*;
-import net.bcnnm.notifications.model.AgentReport;
+import net.bcnnm.notifications.fcc.model.FccAcknowledge;
+import net.bcnnm.notifications.fcc.model.FccAcknowledgeMessage;
+import net.bcnnm.notifications.fcc.model.FccCommand;
+import net.bcnnm.notifications.fcc.model.FccCommandMessage;
+import net.bcnnm.notifications.fcc.model.FccHelloMessage;
+import net.bcnnm.notifications.fcc.model.FccReportMessage;
+import net.bcnnm.notifications.fcc.model.Message;
+import net.bcnnm.notifications.fcc.model.MessageType;
+import net.bcnnm.notifications.model.ExperimentReport;
 import net.bcnnm.notifications.model.TaskStatus;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
@@ -40,28 +44,27 @@ public class FccControlCenterStub {
                 System.out.println("Run standby mode, ready for requests");
 
                 Timer timer = new Timer();
-                List<AgentReport> agentReports = new ArrayList<>(Arrays.asList(
-                        new AgentReport("Task One", "127.0.0.1", new Date(),
-                                TaskStatus.STARTED, 0, Collections.singletonList("First task info")),
-                        new AgentReport("Task Two", "127.0.0.1", new Date(),
-                                TaskStatus.STARTED, 0, Collections.singletonList("Second task info")),
-                        new AgentReport("Task One", "127.0.0.1", new Date(),
-                                TaskStatus.IN_PROGRESS, 65, Collections.singletonList("Progressig first task"))
+                List<ExperimentReport> experimentReports = new ArrayList<>(Arrays.asList(
+                        new ExperimentReport("FCC_STUB",
+                                "ExperimentOne",
+                                0L, TaskStatus.STARTED, 0, Arrays.asList("Info bit one")),
+                        new ExperimentReport("FCC_STUB",
+                                "ExperimentTwo",
+                                10L, TaskStatus.STARTED, 0, Arrays.asList("Some info", "Another info")),
+                        new ExperimentReport("FCC_STUB",
+                                "ExperimentOne",
+                                80L, TaskStatus.IN_PROGRESS, 40, Arrays.asList("Info bit one", "Info bit two"))
                 ));
 
                 TimerTask sendReport = new TimerTask() {
                     @Override
                     public void run() {
                         System.out.println("Timer Task: Sending report..");
-                        /*try {
-                            //sc.write(ByteBuffer.wrap(Encoder.encode(new FccReportMessage(agentReports.get(0)))));
-                            agentReports.remove(0);
-                            if (agentReports.isEmpty()) {
-                                this.cancel();
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }*/
+                        writeToSocket(sc, Encoder.encode(new FccReportMessage(experimentReports.get(0))));
+                        experimentReports.remove(0);
+                        if (experimentReports.isEmpty()) {
+                            this.cancel();
+                        }
                     }
                 };
                 timer.schedule(sendReport, 10000, 10000);
@@ -94,7 +97,7 @@ public class FccControlCenterStub {
         }
     }
 
-    private static void handleIncoming(SelectionKey key) throws IOException {
+    private static void handleIncoming(SelectionKey key) {
         SocketChannel socketChannel = (SocketChannel) key.channel();
 
         byte[] message = readFromSocket(socketChannel);

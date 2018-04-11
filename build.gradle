@@ -19,20 +19,7 @@ subprojects {
     }
 }
 
-
-project(':reporting_service_stub') {
-    task fatJar(type: Jar) {
-        manifest {
-            attributes 'Implementation-Title': 'BCNNM Notifications Server JAR',
-                    'Main-Class': 'net.bcnnm.stub.Stub'
-        }
-        baseName = project.name + '-all'
-        from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-        with jar
-    }
-}
-
-project(':notification_rest_service') {
+project(':notification_service') {
     task fatJar(type: Jar) {
         manifest {
             attributes 'Implementation-Title': 'BCNNM Notifications Server JAR',

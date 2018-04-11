@@ -14,7 +14,6 @@ import net.bcnnm.notifications.fcc.model.FccCommandMessage;
 import net.bcnnm.notifications.fcc.model.FccReportMessage;
 import net.bcnnm.notifications.fcc.model.FccStatusMessage;
 import net.bcnnm.notifications.fcc.model.Message;
-import net.bcnnm.notifications.model.AgentReport;
 import net.bcnnm.notifications.model.CommandType;
 import net.bcnnm.notifications.model.ExperimentReport;
 import net.bcnnm.notifications.slack.SlackBot;
@@ -154,7 +153,7 @@ public class NotificationServer {
     }
 
     public String getStat(String function, String key, String prefix) {
-        List<AgentReport> filteredReports = getFilteredByTaskPrefix(reportDao.getReportList(), prefix);
+        List<ExperimentReport> filteredReports = getFilteredByTaskPrefix(reportDao.getReportList(), prefix);
 
         for (ReportsAggregator reportsAggregator : reportsAggregators) {
             if (reportsAggregator.getName().equals(function)) {
@@ -169,14 +168,14 @@ public class NotificationServer {
         return String.format("Unknown function for aggregation: %s", function);
     }
 
-    private List<AgentReport> getFilteredByTaskPrefix(List<AgentReport> reportList, String prefix) {
+    private List<ExperimentReport> getFilteredByTaskPrefix(List<ExperimentReport> reportList, String prefix) {
         return reportList.stream()
-                .filter(report -> report.getTaskId().startsWith(prefix))
+                .filter(report -> report.getExperimentId().startsWith(prefix))
                 .collect(Collectors.toList());
     }
 
-    public AgentReport getReport(String taskId) {
-        return reportDao.getReport(taskId);
+    public ExperimentReport getReport(String experimentId) {
+        return reportDao.getReport(experimentId);
     }
 
     public void startExperiment(String experimentId) {

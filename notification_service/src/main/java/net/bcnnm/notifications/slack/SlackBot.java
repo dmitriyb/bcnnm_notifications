@@ -11,6 +11,7 @@ import net.bcnnm.notifications.fcc.NotificationServer;
 import net.bcnnm.notifications.fcc.model.FccStatus;
 import net.bcnnm.notifications.model.AgentReport;
 import net.bcnnm.notifications.model.CommandType;
+import net.bcnnm.notifications.model.ExperimentReport;
 import net.bcnnm.notifications.slack.format.SlackFormatter;
 import net.bcnnm.notifications.slack.format.SlackFormatterException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -149,9 +150,9 @@ public class SlackBot extends Bot{
         reply(session, event, new Message(response));
     }
 
-    private void handleGet(String taskId, WebSocketSession session, Event event) {
+    private void handleGet(String experimentId, WebSocketSession session, Event event) {
         try {
-            AgentReport report = notificationServer.getReport(taskId);
+            ExperimentReport report = notificationServer.getReport(experimentId);
             String response = SlackFormatter.format(report);
             reply(session, event, new Message(response));
         } catch (SlackFormatterException e) {
