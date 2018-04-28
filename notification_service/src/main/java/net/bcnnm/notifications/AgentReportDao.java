@@ -37,8 +37,8 @@ public class AgentReportDao {
         return mongoTemplate.findAll(ExperimentReport.class);
     }
 
-    public ExperimentReport getReport(String taskId) {
-        Query byTask = new Query().addCriteria(Criteria.where("taskId").is(taskId));
+    public ExperimentReport getReport(String experimentId) {
+        Query byTask = new Query().addCriteria(Criteria.where("experimentId").is(experimentId));
         return mongoTemplate.findOne(byTask, ExperimentReport.class);
     }
 }

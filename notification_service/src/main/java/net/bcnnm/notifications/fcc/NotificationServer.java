@@ -27,7 +27,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -131,7 +130,7 @@ public class NotificationServer {
                 FccReportMessage fccReportMessage = (FccReportMessage) incomingMessage;
                 ExperimentReport receivedReport = fccReportMessage.getPayload();
 
-                //reportDao.saveReport(receivedReport);
+                reportDao.saveReport(receivedReport);
                 slackBot.sendToDefaultChannel(receivedReport);
                 break;
             case FCC_ACKNOWLEDGE:
@@ -153,7 +152,7 @@ public class NotificationServer {
     }
 
     public String getStat(String function, String key, String prefix) {
-        List<ExperimentReport> filteredReports = getFilteredByTaskPrefix(reportDao.getReportList(), prefix);
+        List<ExperimentReport> filteredReports = getFilteredByExperimentIdPrefix(reportDao.getReportList(), prefix);
 
         for (ReportsAggregator reportsAggregator : reportsAggregators) {
             if (reportsAggregator.getName().equals(function)) {
@@ -168,7 +167,7 @@ public class NotificationServer {
         return String.format("Unknown function for aggregation: %s", function);
     }
 
-    private List<ExperimentReport> getFilteredByTaskPrefix(List<ExperimentReport> reportList, String prefix) {
+    private List<ExperimentReport> getFilteredByExperimentIdPrefix(List<ExperimentReport> reportList, String prefix) {
         return reportList.stream()
                 .filter(report -> report.getExperimentId().startsWith(prefix))
                 .collect(Collectors.toList());
