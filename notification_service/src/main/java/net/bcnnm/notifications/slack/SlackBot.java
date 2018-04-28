@@ -9,7 +9,6 @@ import me.ramswaroop.jbot.core.slack.models.File;
 import me.ramswaroop.jbot.core.slack.models.Message;
 import net.bcnnm.notifications.fcc.NotificationServer;
 import net.bcnnm.notifications.fcc.model.FccStatus;
-import net.bcnnm.notifications.model.AgentReport;
 import net.bcnnm.notifications.model.CommandType;
 import net.bcnnm.notifications.model.ExperimentReport;
 import net.bcnnm.notifications.slack.format.SlackFormatter;
@@ -21,6 +20,8 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 import java.nio.channels.ServerSocketChannel;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -28,6 +29,16 @@ import java.util.concurrent.ArrayBlockingQueue;
 public class SlackBot extends Bot{
     private static final String SOME_ERROR_OCCURRED = "Some error occurred! See the logs for details.";
     private static final String REMOTE_COMMAND_WAS_SENT = "Remote command was sent.";
+    private static final String GENERAL_HELP = "General HELP stub: GET, STAT, ASK, REMOTE supported";
+    private static final Map<String, String> COMMAND_HELP = new HashMap<String, String>() {
+        {
+            put("GET", "GET specific help stub");
+            put("STAT", "STAT specific help stub");
+            put("ASK", "ASK specific help stub");
+            put("REMOTE", "REMOTE specific help stub");
+
+        }
+    };
 
     private final String token;
     private final String defaultChannel;
@@ -80,27 +91,36 @@ public class SlackBot extends Bot{
         }
         catch (IllegalArgumentException e) {
             reply(session, event, new Message(String.format("Unknown command: %s", textSplit[1])));
+            reply(session, event, new Message(GENERAL_HELP));
             return;
         }
 
         String params = textSplit[2];
-        switch (command) {
-            case GET:
-                handleGet(params, session, event);
-                break;
-            case STAT:
-                handleStat(params, session, event);
-                break;
-            case ASK:
-                handleAsk(params, session, event);
-                break;
-            case REMOTE:
-                handleRemote(params, session, event);
-                break;
-            case NS:
-                handleNs(params, session, event);
-            default:
-                reply(session, event, new Message(String.format("Unknown command: %s", command)));
+        try {
+            switch (command) {
+                case GET:
+                    handleGet(params, session, event);
+                    break;
+                case STAT:
+                    handleStat(params, session, event);
+                    break;
+                case ASK:
+                    handleAsk(params, session, event);
+                    break;
+                case REMOTE:
+                    handleRemote(params, session, event);
+                    break;
+                case NS:
+                    handleNs(params, session, event);
+                default:
+                    reply(session, event, new Message(String.format("Unknown command: %s", command)));
+            }
+        } catch (Exception e) {
+            // todo: log properly
+            e.printStackTrace();
+
+            reply(session, event, new Message("Some error occurred. Please try again."));
+            reply(session, event, new Message(COMMAND_HELP.get(command.name())));
         }
     }
 
