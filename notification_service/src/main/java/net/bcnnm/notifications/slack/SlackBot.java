@@ -11,6 +11,7 @@ import net.bcnnm.notifications.fcc.NotificationServer;
 import net.bcnnm.notifications.fcc.model.FccStatus;
 import net.bcnnm.notifications.model.CommandType;
 import net.bcnnm.notifications.model.ExperimentReport;
+import net.bcnnm.notifications.model.Subtype;
 import net.bcnnm.notifications.slack.format.SlackFormatter;
 import net.bcnnm.notifications.slack.format.SlackFormatterException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -148,7 +149,16 @@ public class SlackBot extends Bot{
 
     private void handleAsk(String params, WebSocketSession session, Event event) {
         askQueue.add(new Pair<>(session, event));
-        notificationServer.askFccForStatus();
+        String[] split = params.split(" ", 2);
+        Subtype subtype = Subtype.valueOf(split[0]);
+        switch (subtype) {
+            case AGENT:
+                notificationServer.askFccAgentsStatus();
+                break;
+            case EXPERIMENT:
+                notificationServer.askFccExperimentsStatus();
+                break;
+        }
         reply(session, event, new Message("Asked FCC for status"));
     }
 

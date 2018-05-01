@@ -6,9 +6,12 @@ import net.bcnnm.notifications.fcc.model.FccCommand;
 import net.bcnnm.notifications.fcc.model.FccCommandMessage;
 import net.bcnnm.notifications.fcc.model.FccHelloMessage;
 import net.bcnnm.notifications.fcc.model.FccReportMessage;
+import net.bcnnm.notifications.fcc.model.FccStatus;
+import net.bcnnm.notifications.fcc.model.FccStatusMessage;
 import net.bcnnm.notifications.fcc.model.Message;
 import net.bcnnm.notifications.fcc.model.MessageType;
 import net.bcnnm.notifications.model.ExperimentReport;
+import net.bcnnm.notifications.model.Subtype;
 import net.bcnnm.notifications.model.TaskStatus;
 import org.apache.commons.io.FileUtils;
 
@@ -20,10 +23,12 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 
 import static net.bcnnm.notifications.fcc.ProtocolCommunication.readFromSocket;
 import static net.bcnnm.notifications.fcc.ProtocolCommunication.writeToSocket;
@@ -117,9 +122,30 @@ public class FccControlCenterStub {
             case FCC_ASK:
                 System.out.println("Responding with STATUS message..");
 
-                //FccStatus fccStatus = new FccStatus("FCC Stub", Arrays.asList("Agent One", "Agent Two"), experiments);
+                Subtype subtype = (Subtype) incomingMessage.getPayload();
+                switch (subtype) {
+                    case AGENT:
+                        FccStatus agentsStatus = new FccStatus("FCC Stub", Subtype.AGENT,
+                                new HashMap<UUID, String>(){{
+                                    put(UUID.randomUUID(), "192.168.0.1:4325");
+                                    put(UUID.randomUUID(), "192.168.1.200:6666");
+                                }}
+                        );
 
-                //socketChannel.write(ByteBuffer.wrap(Encoder.encode(new FccStatusMessage(fccStatus))));
+                        writeToSocket(socketChannel, Encoder.encode(new FccStatusMessage(agentsStatus)));
+                        break;
+                    case EXPERIMENT:
+                        FccStatus experimentStatus = new FccStatus("FCC Stub", Subtype.EXPERIMENT,
+                                new HashMap<UUID, String>(){{
+                                    put(UUID.randomUUID(), "Some Tag");
+                                    put(UUID.randomUUID(), "Another Tag");
+                                }}
+                        );
+
+                        writeToSocket(socketChannel, Encoder.encode(new FccStatusMessage(experimentStatus)));
+                        break;
+                }
+
                 break;
             case FCC_STATUS:
                 break;

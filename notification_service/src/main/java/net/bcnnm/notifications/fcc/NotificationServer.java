@@ -16,6 +16,7 @@ import net.bcnnm.notifications.fcc.model.FccStatusMessage;
 import net.bcnnm.notifications.fcc.model.Message;
 import net.bcnnm.notifications.model.CommandType;
 import net.bcnnm.notifications.model.ExperimentReport;
+import net.bcnnm.notifications.model.Subtype;
 import net.bcnnm.notifications.slack.SlackBot;
 import net.bcnnm.notifications.stats.AggregationException;
 import net.bcnnm.notifications.stats.ReportsAggregator;
@@ -146,9 +147,14 @@ public class NotificationServer {
 
     }
 
-    public void askFccForStatus() {
-        System.out.println("Asking FCC for status..");
-        writeToSocket(fccSocketChannel, Encoder.encode(new FccAskMessage()));
+    public void askFccAgentsStatus() {
+        System.out.println("Asking FCC for agents status..");
+        writeToSocket(fccSocketChannel, Encoder.encode(new FccAskMessage(Subtype.AGENT)));
+    }
+
+    public void askFccExperimentsStatus() {
+        System.out.println("Asking FCC for experiments status..");
+        writeToSocket(fccSocketChannel, Encoder.encode(new FccAskMessage(Subtype.EXPERIMENT)));
     }
 
     public String getStat(String function, String key, String prefix) {

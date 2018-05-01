@@ -2,9 +2,21 @@ package net.bcnnm.notifications.fcc;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.bcnnm.notifications.fcc.model.*;
-import net.bcnnm.notifications.model.AgentReport;
+import net.bcnnm.notifications.fcc.model.FccAcknowledge;
+import net.bcnnm.notifications.fcc.model.FccAcknowledgeMessage;
+import net.bcnnm.notifications.fcc.model.FccAskMessage;
+import net.bcnnm.notifications.fcc.model.FccAuthMessage;
+import net.bcnnm.notifications.fcc.model.FccCommand;
+import net.bcnnm.notifications.fcc.model.FccCommandMessage;
+import net.bcnnm.notifications.fcc.model.FccHelloMessage;
+import net.bcnnm.notifications.fcc.model.FccReportMessage;
+import net.bcnnm.notifications.fcc.model.FccStatus;
+import net.bcnnm.notifications.fcc.model.FccStatusMessage;
+import net.bcnnm.notifications.fcc.model.Message;
+import net.bcnnm.notifications.fcc.model.MessageType;
+import net.bcnnm.notifications.fcc.model.Payload;
 import net.bcnnm.notifications.model.ExperimentReport;
+import net.bcnnm.notifications.model.Subtype;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -25,7 +37,8 @@ public class Encoder {
             case FCC_AUTH:
                 return new FccAuthMessage();
             case FCC_ASK:
-                return new FccAskMessage();
+                Subtype subtype = decodeBody(body, Subtype.class);
+                return new FccAskMessage(subtype);
             case FCC_STATUS:
                 FccStatus fccStatus = decodeBody(body, FccStatus.class);
                 return new FccStatusMessage(fccStatus);
