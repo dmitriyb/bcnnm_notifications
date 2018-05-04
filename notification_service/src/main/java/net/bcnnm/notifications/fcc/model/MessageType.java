@@ -9,7 +9,9 @@ public enum MessageType {
 //    FCC_KILL(13),
     FCC_REPORT(14),
     FCC_COMMAND(15),
-    FCC_ACKNOWLEDGE(16);
+    FCC_ACKNOWLEDGE(16),
+    FCC_AGENT_ASK(17),
+    FCC_AGENT_INFO(18);
 
     private final int id;
 

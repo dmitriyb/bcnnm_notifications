@@ -7,6 +7,8 @@ import me.ramswaroop.jbot.core.slack.models.File;
 import net.bcnnm.notifications.AgentReportDao;
 import net.bcnnm.notifications.fcc.model.FccAcknowledge;
 import net.bcnnm.notifications.fcc.model.FccAcknowledgeMessage;
+import net.bcnnm.notifications.fcc.model.FccAgentAskMessage;
+import net.bcnnm.notifications.fcc.model.FccAgentInfoMessage;
 import net.bcnnm.notifications.fcc.model.FccAskMessage;
 import net.bcnnm.notifications.fcc.model.FccAuthMessage;
 import net.bcnnm.notifications.fcc.model.FccCommand;
@@ -14,6 +16,7 @@ import net.bcnnm.notifications.fcc.model.FccCommandMessage;
 import net.bcnnm.notifications.fcc.model.FccReportMessage;
 import net.bcnnm.notifications.fcc.model.FccStatusMessage;
 import net.bcnnm.notifications.fcc.model.Message;
+import net.bcnnm.notifications.model.AgentInfo;
 import net.bcnnm.notifications.model.CommandType;
 import net.bcnnm.notifications.model.ExperimentReport;
 import net.bcnnm.notifications.model.Subtype;
@@ -120,6 +123,10 @@ public class NotificationServer {
 
                 writeToSocket(socketChannel, Encoder.encode(new FccAuthMessage()));
                 break;
+            case FCC_AUTH:
+                break;
+            case FCC_ASK:
+                break;
             case FCC_STATUS:
                 System.out.println("Received status..");
                 FccStatusMessage fccStatusMessage = (FccStatusMessage) incomingMessage;
@@ -134,12 +141,23 @@ public class NotificationServer {
                 reportDao.saveReport(receivedReport);
                 slackBot.sendToDefaultChannel(receivedReport);
                 break;
+            case FCC_COMMAND:
+                break;
             case FCC_ACKNOWLEDGE:
                 System.out.println("Recieved acknowledge..");
                 FccAcknowledgeMessage fccAcknowledgeMessage = (FccAcknowledgeMessage) incomingMessage;
                 FccAcknowledge acknowledge = fccAcknowledgeMessage.getPayload();
 
                 slackBot.sendToDefaultChannel(acknowledge);
+                break;
+            case FCC_AGENT_ASK:
+                break;
+            case FCC_AGENT_INFO:
+                System.out.println("Recieved agent info..");
+                FccAgentInfoMessage fccAgentInfoMessage = (FccAgentInfoMessage) incomingMessage;
+                AgentInfo agentInfo = fccAgentInfoMessage.getPayload();
+
+                slackBot.replyWithAgentInfo(agentInfo);
                 break;
             default:
                 break;
@@ -155,6 +173,11 @@ public class NotificationServer {
     public void askFccExperimentsStatus() {
         System.out.println("Asking FCC for experiments status..");
         writeToSocket(fccSocketChannel, Encoder.encode(new FccAskMessage(Subtype.EXPERIMENT)));
+    }
+
+    public void askAgentReport(String agentId) {
+        System.out.println("Asking FCC for agent info..");
+        writeToSocket(fccSocketChannel, Encoder.encode(new FccAgentAskMessage(agentId)));
     }
 
     public String getStat(String function, String key, String prefix) {
@@ -179,7 +202,7 @@ public class NotificationServer {
                 .collect(Collectors.toList());
     }
 
-    public ExperimentReport getReport(String experimentId) {
+    public ExperimentReport getExperimentReport(String experimentId) {
         return reportDao.getReport(experimentId);
     }
 

@@ -1,7 +1,9 @@
 package net.bcnnm.notifications.fcc;
 
+import net.bcnnm.notifications.fcc.model.AgentId;
 import net.bcnnm.notifications.fcc.model.FccAcknowledge;
 import net.bcnnm.notifications.fcc.model.FccAcknowledgeMessage;
+import net.bcnnm.notifications.fcc.model.FccAgentInfoMessage;
 import net.bcnnm.notifications.fcc.model.FccCommand;
 import net.bcnnm.notifications.fcc.model.FccCommandMessage;
 import net.bcnnm.notifications.fcc.model.FccHelloMessage;
@@ -10,8 +12,11 @@ import net.bcnnm.notifications.fcc.model.FccStatus;
 import net.bcnnm.notifications.fcc.model.FccStatusMessage;
 import net.bcnnm.notifications.fcc.model.Message;
 import net.bcnnm.notifications.fcc.model.MessageType;
+import net.bcnnm.notifications.model.AgentInfo;
+import net.bcnnm.notifications.model.AgentStatus;
 import net.bcnnm.notifications.model.ExperimentReport;
 import net.bcnnm.notifications.model.Subtype;
+import net.bcnnm.notifications.model.TaskInfo;
 import net.bcnnm.notifications.model.TaskStatus;
 import org.apache.commons.io.FileUtils;
 
@@ -157,6 +162,16 @@ public class FccControlCenterStub {
                 FccAcknowledge acknowledge = buildAcknowledge((FccCommandMessage) incomingMessage);
 
                 writeToSocket(socketChannel, Encoder.encode(new FccAcknowledgeMessage(acknowledge)));
+                break;
+            case FCC_AGENT_ASK:
+                System.out.println("Responding with AGENT INFO message..");
+
+                AgentId agentId = (AgentId) incomingMessage.getPayload();
+
+                AgentInfo agentInfo = new AgentInfo(agentId.getId(), "192.168.0.1", AgentStatus.ACTIVE, 12345L,
+                        new TaskInfo("Some Experiment Id", "Some Task Id", TaskStatus.IN_PROGRESS));
+
+                writeToSocket(socketChannel, Encoder.encode(new FccAgentInfoMessage(agentInfo)));
                 break;
             default:
                 System.out.println("Unsupported message type");

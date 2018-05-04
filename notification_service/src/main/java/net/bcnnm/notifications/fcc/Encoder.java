@@ -2,8 +2,11 @@ package net.bcnnm.notifications.fcc;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.bcnnm.notifications.fcc.model.AgentId;
 import net.bcnnm.notifications.fcc.model.FccAcknowledge;
 import net.bcnnm.notifications.fcc.model.FccAcknowledgeMessage;
+import net.bcnnm.notifications.fcc.model.FccAgentAskMessage;
+import net.bcnnm.notifications.fcc.model.FccAgentInfoMessage;
 import net.bcnnm.notifications.fcc.model.FccAskMessage;
 import net.bcnnm.notifications.fcc.model.FccAuthMessage;
 import net.bcnnm.notifications.fcc.model.FccCommand;
@@ -15,6 +18,7 @@ import net.bcnnm.notifications.fcc.model.FccStatusMessage;
 import net.bcnnm.notifications.fcc.model.Message;
 import net.bcnnm.notifications.fcc.model.MessageType;
 import net.bcnnm.notifications.fcc.model.Payload;
+import net.bcnnm.notifications.model.AgentInfo;
 import net.bcnnm.notifications.model.ExperimentReport;
 import net.bcnnm.notifications.model.Subtype;
 
@@ -55,6 +59,12 @@ public class Encoder {
             case FCC_ACKNOWLEDGE:
                 FccAcknowledge acknowledge = decodeBody(body, FccAcknowledge.class);
                 return new FccAcknowledgeMessage(acknowledge);
+            case FCC_AGENT_ASK:
+                AgentId agentId = decodeBody(body, AgentId.class);
+                return new FccAgentAskMessage(agentId.getId());
+            case FCC_AGENT_INFO:
+                AgentInfo agentInfo = decodeBody(body, AgentInfo.class);
+                return new FccAgentInfoMessage(agentInfo);
             default:
                 System.out.println(String.format("Unknown message type: %s", messageType));
                 return null;

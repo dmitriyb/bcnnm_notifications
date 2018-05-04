@@ -9,6 +9,7 @@ import me.ramswaroop.jbot.core.slack.models.File;
 import me.ramswaroop.jbot.core.slack.models.Message;
 import net.bcnnm.notifications.fcc.NotificationServer;
 import net.bcnnm.notifications.fcc.model.FccStatus;
+import net.bcnnm.notifications.model.AgentInfo;
 import net.bcnnm.notifications.model.CommandType;
 import net.bcnnm.notifications.model.ExperimentReport;
 import net.bcnnm.notifications.model.Subtype;
@@ -30,10 +31,10 @@ import java.util.concurrent.ArrayBlockingQueue;
 public class SlackBot extends Bot{
     private static final String SOME_ERROR_OCCURRED = "Some error occurred! See the logs for details.";
     private static final String REMOTE_COMMAND_WAS_SENT = "Remote command was sent.";
-    private static final String GENERAL_HELP = "General HELP stub: GET, STAT, ASK, REMOTE supported";
+    private static final String GENERAL_HELP = "General HELP stub: INFO, STAT, ASK, REMOTE supported";
     private static final Map<String, String> COMMAND_HELP = new HashMap<String, String>() {
         {
-            put("GET", "GET specific help stub");
+            put("INFO", "INFO specific help stub");
             put("STAT", "STAT specific help stub");
             put("ASK", "ASK specific help stub");
             put("REMOTE", "REMOTE specific help stub");
@@ -99,8 +100,8 @@ public class SlackBot extends Bot{
         String params = textSplit[2];
         try {
             switch (command) {
-                case GET:
-                    handleGet(params, session, event);
+                case INFO:
+                    handleInfo(params, session, event);
                     break;
                 case STAT:
                     handleStat(params, session, event);
@@ -180,10 +181,27 @@ public class SlackBot extends Bot{
         reply(session, event, new Message(response));
     }
 
-    private void handleGet(String experimentId, WebSocketSession session, Event event) {
+    private void handleInfo(String paramsString, WebSocketSession session, Event event) {
+        String[] params = paramsString.split(" ", 2);
+        Subtype subtype = Subtype.valueOf(params[0]);
+        String uuid = params[1];
+
         try {
-            ExperimentReport report = notificationServer.getReport(experimentId);
-            String response = SlackFormatter.format(report);
+            String response = null;
+            switch (subtype) {
+                case AGENT:
+                    askQueue.add(new Pair<>(session, event));
+                    notificationServer.askAgentReport(uuid);
+
+                    response = String.format("Asked FCC for agent id=%s info", uuid);
+                    break;
+                case EXPERIMENT:
+                    ExperimentReport experimentReport = notificationServer.getExperimentReport(uuid);
+
+                    response = SlackFormatter.format(experimentReport);
+                    break;
+            }
+
             reply(session, event, new Message(response));
         } catch (SlackFormatterException e) {
             e.printStackTrace();
@@ -198,6 +216,19 @@ public class SlackBot extends Bot{
 
         try {
             reply(session, event, new Message(SlackFormatter.format(fccStatus)));
+        } catch (SlackFormatterException e) {
+            e.printStackTrace();
+            reply(session, event, new Message(SOME_ERROR_OCCURRED));
+        }
+    }
+
+    public void replyWithAgentInfo(AgentInfo agentInfo) {
+        Pair<WebSocketSession, Event> asked = askQueue.poll();
+        WebSocketSession session = asked.getKey();
+        Event event = asked.getValue();
+
+        try {
+            reply(session, event, new Message(SlackFormatter.format(agentInfo)));
         } catch (SlackFormatterException e) {
             e.printStackTrace();
             reply(session, event, new Message(SOME_ERROR_OCCURRED));

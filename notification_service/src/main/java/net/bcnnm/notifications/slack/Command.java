@@ -1,7 +1,7 @@
 package net.bcnnm.notifications.slack;
 
 public enum Command {
-    GET,
+    INFO,
     STAT,
     ASK,
     REMOTE,
