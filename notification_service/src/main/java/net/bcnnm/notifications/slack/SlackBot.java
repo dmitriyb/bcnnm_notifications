@@ -127,23 +127,52 @@ public class SlackBot extends Bot{
     }
 
     private void handleRemote(String paramsString, WebSocketSession session, Event event) {
-        String[] params = paramsString.split(" ", 2);
-        CommandType commandType = CommandType.valueOf(params[0]);
-        String experimentId = params[1];
+        String[] params = paramsString.split(" ", 3);
+        Subtype subtype = Subtype.valueOf(params[0]);
 
-        switch (commandType) {
-            case START:
-                notificationServer.startExperiment(experimentId);
-                reply(session, event, new Message(REMOTE_COMMAND_WAS_SENT));
+        CommandType commandType;
+
+        switch (subtype) {
+            case EXPERIMENT:
+                commandType = CommandType.valueOf(params[1]);
+                String experimentId = params[2];
+
+                switch (commandType) {
+                    case START:
+                        notificationServer.startExperiment(experimentId);
+                        reply(session, event, new Message(REMOTE_COMMAND_WAS_SENT));
+                        break;
+                    case STOP:
+                        notificationServer.stopExperiment(experimentId);
+                        reply(session, event, new Message(REMOTE_COMMAND_WAS_SENT));
+                        break;
+                    case PAUSE:
+                        notificationServer.pauseExperiment(experimentId);
+                        reply(session, event, new Message(REMOTE_COMMAND_WAS_SENT));
+                        break;
+                    default:
+                        String response = String.format("Unknown command type: %s", commandType);
+                        System.out.println(response);
+                        reply(session, event, new Message(response));
+                        break;
+                }
+
                 break;
-            case STOP:
-                notificationServer.stopExperiment(experimentId);
-                reply(session, event, new Message(REMOTE_COMMAND_WAS_SENT));
-                break;
-            default:
-                String response = String.format("Unknown command type: %s", commandType);
-                System.out.println(response);
-                reply(session, event, new Message(response));
+            case AGENT:
+                commandType = CommandType.valueOf(params[1]);
+                String agentId = params[2];
+
+                switch (commandType) {
+                    case SHUTDOWN:
+                        notificationServer.shutdownAgent(agentId);
+                        break;
+                    default:
+                        String response = String.format("Unknown command type: %s", commandType);
+                        System.out.println(response);
+                        reply(session, event, new Message(response));
+                        break;
+                }
+
                 break;
         }
     }

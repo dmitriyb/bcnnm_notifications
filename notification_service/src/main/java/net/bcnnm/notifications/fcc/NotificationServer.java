@@ -218,6 +218,18 @@ public class NotificationServer {
         writeToSocket(fccSocketChannel, Encoder.encode(new FccCommandMessage(stopCommand)));
     }
 
+    public void pauseExperiment(String experimentId) {
+        System.out.println("Sending PAUSE command..");
+        FccCommand pauseCommand = new FccCommand(CommandType.PAUSE, experimentId.getBytes());
+        writeToSocket(fccSocketChannel, Encoder.encode(new FccCommandMessage(pauseCommand)));
+    }
+
+    public void shutdownAgent(String agentId) {
+        System.out.println("Sending SHUTDOWN command..");
+        FccCommand fccCommand = new FccCommand(CommandType.SHUTDOWN, agentId.getBytes());
+        writeToSocket(fccSocketChannel, Encoder.encode(new FccCommandMessage(fccCommand)));
+    }
+
     public void uploadFile(File file) {
         try {
             System.out.println("Sending UPLOAD command..");

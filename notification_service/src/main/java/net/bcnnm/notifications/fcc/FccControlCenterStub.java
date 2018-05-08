@@ -182,23 +182,35 @@ public class FccControlCenterStub {
     private static FccAcknowledge buildAcknowledge(FccCommandMessage incomingMessage) {
         FccCommand fccCommand = incomingMessage.getPayload();
 
+        String ackDetails;
+
         switch (fccCommand.getCommandType()) {
             case START:
 
             case STOP:
+
+            case PAUSE:
                 String experimentId = new String(fccCommand.getDetails());
                 if (!experimentId.endsWith("TOFAIL")) {
-                    String ackDetails = String.format("%s, %s",
+                    ackDetails = String.format("%s, %s",
                             fccCommand.getCommandType(), experimentId);
 
                     return new FccAcknowledge(FccAcknowledge.Status.OK, ackDetails);
                 }
                 else {
-                    String ackDetails = String.format("%s, %s",
+                    ackDetails = String.format("%s, %s",
                             fccCommand.getCommandType(), experimentId);
 
                     return new FccAcknowledge(FccAcknowledge.Status.FAILED, ackDetails);
                 }
+
+            case SHUTDOWN:
+                String agentId = new String(fccCommand.getDetails());
+                ackDetails = String.format("%s, %s",
+                        fccCommand.getCommandType(), agentId);
+
+                return new FccAcknowledge(FccAcknowledge.Status.OK, ackDetails);
+
             case UPLOAD:
                 byte[] fileBytes = fccCommand.getDetails();
 
@@ -209,7 +221,7 @@ public class FccControlCenterStub {
                     e.printStackTrace();
                 }
 
-                String ackDetails = String.format("Configuration uploaded, experimentId: %s", experimentId);
+                ackDetails = String.format("Configuration uploaded, experimentId: %s", experimentId);
                 return new FccAcknowledge(FccAcknowledge.Status.OK, ackDetails);
 
             default:
