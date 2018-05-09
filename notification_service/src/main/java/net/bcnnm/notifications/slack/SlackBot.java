@@ -27,18 +27,20 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 
+import static net.bcnnm.notifications.stats.ReportsAggregator.CURRENTLY_SUPPORTED_STATS;
+
 @Component
 public class SlackBot extends Bot{
     private static final String SOME_ERROR_OCCURRED = "Some error occurred! See the logs for details.";
     private static final String REMOTE_COMMAND_WAS_SENT = "Remote command was sent.";
-    private static final String GENERAL_HELP = "General HELP stub: INFO, STAT, ASK, REMOTE supported";
+    private static final String GENERAL_HELP = "[INFO / STAT / ASK / REMOTE] %params% -- please use \"HELP %command%\" for command-specific help";
     private static final Map<String, String> COMMAND_HELP = new HashMap<String, String>() {
         {
-            put("INFO", "INFO specific help stub");
-            put("STAT", "STAT specific help stub");
-            put("ASK", "ASK specific help stub");
-            put("REMOTE", "REMOTE specific help stub");
-
+            put("INFO", "INFO [AGENT/EXPERIMENT] %uuid% -- detailed info on entity by uuid");
+            put("STAT", "STAT %function% %key% %prefix% -- aggregated values on %key% using %function% for experiments with %prefix%, " +
+                    String.format("currently supported functions: %s", CURRENTLY_SUPPORTED_STATS));
+            put("ASK", "ASK [AGENT/EXPERIMENT] -- general info on entity");
+            put("REMOTE", "REMOTE [AGENT SHUTDOWN / EXPERIMENT [START/STOP/PAUSE]] %uuid% -- send remote control command");
         }
     };
 
@@ -97,7 +99,7 @@ public class SlackBot extends Bot{
             return;
         }
 
-        String params = textSplit[2];
+        String params = textSplit.length >= 3 ? textSplit[2] : "";
         try {
             switch (command) {
                 case INFO:
@@ -114,8 +116,13 @@ public class SlackBot extends Bot{
                     break;
                 case NS:
                     handleNs(params, session, event);
+                    break;
+                case HELP:
+                    handleHelp(params, session, event);
+                    break;
                 default:
                     reply(session, event, new Message(String.format("Unknown command: %s", command)));
+                    reply(session, event, new Message(COMMAND_HELP.get(command.name())));
             }
         } catch (Exception e) {
             // todo: log properly
@@ -123,6 +130,22 @@ public class SlackBot extends Bot{
 
             reply(session, event, new Message("Some error occurred. Please try again."));
             reply(session, event, new Message(COMMAND_HELP.get(command.name())));
+        }
+    }
+
+    private void handleHelp(String paramsString, WebSocketSession session, Event event) {
+        if (paramsString.isEmpty()) {
+            reply(session, event, new Message(GENERAL_HELP));
+        }
+        else {
+            Command command = Command.valueOf(paramsString);
+
+            String specificHelp = COMMAND_HELP.get(command.name());
+            if (specificHelp != null) {
+                reply(session, event, new Message(specificHelp));
+            } else {
+                reply(session, event, new Message(GENERAL_HELP));
+            }
         }
     }
 

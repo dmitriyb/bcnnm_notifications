@@ -5,5 +5,6 @@ public enum Command {
     STAT,
     ASK,
     REMOTE,
-    NS
+    NS,
+    HELP
 }

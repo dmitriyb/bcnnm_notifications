@@ -184,7 +184,7 @@ public class NotificationServer {
         List<ExperimentReport> filteredReports = getFilteredByExperimentIdPrefix(reportDao.getReportList(), prefix);
 
         for (ReportsAggregator reportsAggregator : reportsAggregators) {
-            if (reportsAggregator.getName().equals(function)) {
+            if (reportsAggregator.getName().equalsIgnoreCase(function)) {
                 try {
                     return reportsAggregator.aggregate(filteredReports, key);
                 } catch (AggregationException e) {
