@@ -21,8 +21,8 @@ import net.bcnnm.notifications.model.CommandType;
 import net.bcnnm.notifications.model.ExperimentReport;
 import net.bcnnm.notifications.model.Subtype;
 import net.bcnnm.notifications.slack.SlackBot;
-import net.bcnnm.notifications.stats.AggregationException;
-import net.bcnnm.notifications.stats.ReportsAggregator;
+import net.bcnnm.notifications.calcs.AggregationException;
+import net.bcnnm.notifications.calcs.ReportsAggregator;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -180,7 +180,7 @@ public class NotificationServer {
         writeToSocket(fccSocketChannel, Encoder.encode(new FccAgentAskMessage(agentId)));
     }
 
-    public String getStat(String function, String key, String prefix) {
+    public String calculate(String function, String key, String prefix) {
         List<ExperimentReport> filteredReports = getFilteredByExperimentIdPrefix(reportDao.getReportList(), prefix);
 
         for (ReportsAggregator reportsAggregator : reportsAggregators) {

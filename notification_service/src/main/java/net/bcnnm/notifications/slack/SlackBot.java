@@ -22,23 +22,26 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 import java.nio.channels.ServerSocketChannel;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import static net.bcnnm.notifications.stats.ReportsAggregator.CURRENTLY_SUPPORTED_STATS;
+import static net.bcnnm.notifications.calcs.ReportsAggregator.CURRENTLY_SUPPORTED_CALCS;
 
 @Component
 public class SlackBot extends Bot{
     private static final String SOME_ERROR_OCCURRED = "Some error occurred! See the logs for details.";
     private static final String REMOTE_COMMAND_WAS_SENT = "Remote command was sent.";
-    private static final String GENERAL_HELP = "[INFO / STAT / ASK / REMOTE] %params% -- please use \"HELP %command%\" for command-specific help";
+    private static final String GENERAL_HELP = "[INFO / CALC / ASK / REMOTE] %params% -- please use \"HELP %command%\" for command-specific help";
     private static final Map<String, String> COMMAND_HELP = new HashMap<String, String>() {
         {
             put("INFO", "INFO [AGENT/EXPERIMENT] %uuid% -- detailed info on entity by uuid");
-            put("STAT", "STAT %function% %key% %prefix% -- aggregated values on %key% using %function% for experiments with %prefix%, " +
-                    String.format("currently supported functions: %s", CURRENTLY_SUPPORTED_STATS));
+            put("CALC", "CALC %function% %key% %prefix% -- aggregated values on %key% using %function% for experiments with %prefix%, " +
+                    String.format("currently supported functions: %s", CURRENTLY_SUPPORTED_CALCS));
             put("ASK", "ASK [AGENT/EXPERIMENT] -- general info on entity");
             put("REMOTE", "REMOTE [AGENT SHUTDOWN / EXPERIMENT [START/STOP/PAUSE]] %uuid% -- send remote control command");
         }
@@ -105,8 +108,8 @@ public class SlackBot extends Bot{
                 case INFO:
                     handleInfo(params, session, event);
                     break;
-                case STAT:
-                    handleStat(params, session, event);
+                case CALC:
+                    handleCalc(params, session, event);
                     break;
                 case ASK:
                     handleAsk(params, session, event);
@@ -223,14 +226,20 @@ public class SlackBot extends Bot{
         reply(session, event, new Message("NS data: local IP: " + localIP + " remoteIP: " + remoteIP + " port: " + port));
     }
 
-    private void handleStat(String paramsString, WebSocketSession session, Event event) {
-        String[] params = paramsString.split(" ", 4);
-        String function = params[0];
-        String key = params[1];
-        String prefix = params[2];
+    private void handleCalc(String paramsString, WebSocketSession session, Event event) {
 
-        String response = notificationServer.getStat(function, key, prefix);
-        reply(session, event, new Message(response));
+        Matcher matcher = Pattern.compile("\\(?([a-zA-Z,\\s]*)\\)? (.*) (.*)").matcher(paramsString);
+
+        matcher.matches();
+        String[] functions = matcher.group(1).split(",\\s*");
+        String key = matcher.group(2);
+        String prefix = matcher.group(3);
+
+        ArrayList<String> calculations = new ArrayList<>();
+        for (String function : functions) {
+            String response = notificationServer.calculate(function, key, prefix);
+            reply(session, event, new Message(response));
+        }
     }
 
     private void handleInfo(String paramsString, WebSocketSession session, Event event) {

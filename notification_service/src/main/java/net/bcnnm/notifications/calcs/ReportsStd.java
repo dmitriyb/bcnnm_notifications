@@ -1,4 +1,4 @@
-package net.bcnnm.notifications.stats;
+package net.bcnnm.notifications.calcs;
 
 import net.bcnnm.notifications.model.ExperimentReport;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -8,15 +8,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 
 @Component
-public class ReportsMean implements ReportsAggregator{
+public class ReportsStd implements ReportsAggregator {
     @Override
     public String getName() {
-        return "mean";
+        return "std";
     }
 
     @Override
     public String aggregate(Collection<ExperimentReport> reports, String key) throws AggregationException {
-        double meanValue = reports.stream()
+        double[] values = reports.stream()
                 .mapToDouble(report -> {
                     try {
                         return ((Number) PropertyUtils.getSimpleProperty(report, key)).doubleValue();
@@ -24,9 +24,19 @@ public class ReportsMean implements ReportsAggregator{
                         // LOG exception here
                         throw new AggregationException(String.format("Failed to get value of field: %s", key), e);
                     }
-                })
-                .average().getAsDouble();
+                }).toArray();
 
-        return String.format("Key=%s, Mean=%s",key, meanValue);
+        double sum = 0;
+        for (double value : values) {
+            sum += value;
+        }
+        double mean = sum / values.length;
+
+        double sumSquares = 0;
+        for (double value : values) {
+            sumSquares += (value - mean) * (value - mean);
+        }
+
+        return String.format("Key=%s, Std=%s",key, Math.sqrt(sumSquares / values.length));
     }
 }

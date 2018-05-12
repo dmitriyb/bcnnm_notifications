@@ -1,4 +1,4 @@
-package net.bcnnm.notifications.stats;
+package net.bcnnm.notifications.calcs;
 
 public class AggregationException extends RuntimeException {
     public AggregationException(String message) {

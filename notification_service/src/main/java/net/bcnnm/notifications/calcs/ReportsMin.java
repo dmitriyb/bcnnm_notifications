@@ -1,4 +1,4 @@
-package net.bcnnm.notifications.stats;
+package net.bcnnm.notifications.calcs;
 
 import net.bcnnm.notifications.model.ExperimentReport;
 import org.apache.commons.beanutils.PropertyUtils;
