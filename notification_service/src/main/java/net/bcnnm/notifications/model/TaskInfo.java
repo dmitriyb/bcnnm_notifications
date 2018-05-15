@@ -1,8 +1,13 @@
 package net.bcnnm.notifications.model;
 
+import net.bcnnm.notifications.slack.format.SlackBold;
+import net.bcnnm.notifications.slack.format.SlackFormatted;
+
+@SlackFormatted
 public class TaskInfo {
     private final String experimentId;
 
+    @SlackBold
     private final String taskId;
 
     private final TaskStatus taskStatus;

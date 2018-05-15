@@ -2,6 +2,7 @@ package net.bcnnm.notifications.model;
 
 import net.bcnnm.notifications.fcc.model.Payload;
 import net.bcnnm.notifications.slack.format.SlackBold;
+import net.bcnnm.notifications.slack.format.SlackFormatted;
 import net.bcnnm.notifications.slack.format.SlackIgnore;
 import net.bcnnm.notifications.slack.format.SlackName;
 import org.springframework.data.annotation.Id;
@@ -11,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+@SlackFormatted
 public class ExperimentReport implements Payload {
     //region Fields
     @Id
